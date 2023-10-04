@@ -2,37 +2,41 @@ const Database = require('better-sqlite3-multiple-ciphers')
 const fs = require('fs')
 const path = require('path')
 
+const dbpath = path.join(__dirname, 'secrets.db')
+
 let secretsdb
 
-function getDB() {
-  const init = fs.existsSync(path.join(__dirname, 'secrets.db'))
-  if (!init) {
-    secretsdb = null
-  } else {
-    secretsdb = new Database(path.join(__dirname, 'secrets.db'))
-  }
-  return {
-    init,
-    db: secretsdb
-  }
+function connectDB() {
+  const init = fs.existsSync(dbpath)
+  if (init) secretsdb = new Database(dbpath)
+  return init
 }
 
-function createAndReturnDB() {
-  secretsdb = new Database('secrets.db')
+function createAndConnectDB() {
+  secretsdb = new Database(dbpath)
 
   const create = secretsdb.prepare(
     fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8')
   )
 
   create.run()
-
-  return secretsdb
 }
 
 function cleanup() {
-  const { init, db } = getDB()
-  if (!init) return
-  db.close()
+  if (!secretsdb) return
+  secretsdb.close()
+}
+
+function isDBEncrypted() {
+  let result = false
+
+  try {
+    secretsdb.exec(`SELECT name FROM sqlite_master WHERE type='table';`)
+  } catch (error) {
+    result = true
+  }
+
+  return result
 }
 
 function accessDB(password) {
@@ -51,7 +55,15 @@ function insertSecret(secret) {
   const insert = secretsdb.prepare(
     'INSERT INTO secrets ( name, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?)'
   )
-  insert.run(...secret)
+  insert.run(
+    secret.name,
+    secret.algorithm,
+    secret.digits,
+    secret.interval,
+    secret.tzero,
+    secret.secret,
+    secret.notes
+  )
 }
 
 function deleteSecretByName(name) {
@@ -68,14 +80,21 @@ function getSecretByName(name) {
   return getSecretByName.get(name)
 }
 
+function getAllSecrets() {
+  const getAllSecrets = secretsdb.prepare('SELECT * FROM secrets')
+  return getAllSecrets.all()
+}
+
 module.exports = {
-  getDB,
-  createAndReturnDB,
+  connectDB,
+  createAndConnectDB,
   cleanup,
+  isDBEncrypted,
   accessDB,
   encryptDB,
   decryptDB,
   insertSecret,
   deleteSecretByName,
-  getSecretByName
+  getSecretByName,
+  getAllSecrets
 }

@@ -1,18 +1,55 @@
-const readline = require('node:readline')
+const readline = require('node:readline/promises')
 const { stdin: input, stdout: output } = require('node:process')
+const { parseArgs } = require('./parseArgs')
+const commands = require('./commands')
+const {
+  connectDB,
+  createAndConnectDB,
+  cleanup,
+  isDBEncrypted,
+  accessDB
+} = require('./db')
+
+function gracefulShutdown() {
+  console.log(
+    '\nClosing any open DB connections and I/O streams and shutting down.'
+  )
+  cleanup()
+  rl.close()
+}
 
 const rl = readline.createInterface({ input, output })
+rl.on('SIGINT', gracefulShutdown)
 
-rl.question('What do you think of Node.js? ', (answer) => {
-  // TODO: Log the answer in a database
-  console.log(`Thank you for your valuable feedback: ${JSON.stringify(answer)}`)
+process.on('SIGINT', gracefulShutdown)
 
-  rl.close()
-})
+async function main() {
+  try {
+    const [_execPath, _filePath, command, ...args] = process.argv
+    const options = parseArgs(command, args)
 
-/*
- * Interface thoughts:
- * All modes will check if the db is encrypted
- * Default mode will spit out all TOTPs, one per line, with validFor time
- * aux -n <name> will spit out just that TOTP with validFor time
- */
+    const init = connectDB()
+    if (!init) createAndConnectDB()
+
+    if (isDBEncrypted()) {
+      do {
+        const password = await rl.question(
+          'Secrets database is encrypted. Please enter the password: '
+        )
+        accessDB(password)
+      } while (isDBEncrypted())
+    }
+
+    commands[command](options)
+  } catch (error) {
+    cleanup()
+    rl.close()
+    console.error(error.message)
+    process.exit(1)
+  } finally {
+    cleanup()
+    rl.close()
+  }
+}
+
+main()
