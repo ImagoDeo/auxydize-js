@@ -2,13 +2,27 @@
   "name": "auxydize",
   "version": "0.0.1",
   "description": "AuxydizeJS is a JS prototype of Auxydize, a Rust Time-Based One-Time Password generator for the command line.",
-  "main": "index.js",
+  "main": "bin/index.js",
+  "bin": {
+    "aux": "./bin/index.js"
+  },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "prepare": "husky install"
   },
   "author": "kieffer.joshua.k@gmail.com",
   "license": "UNLICENSED",
   "dependencies": {
-    "better-sqlite3-multiple-ciphers": "^8.7.0"
+    "better-sqlite3-multiple-ciphers": "^8.7.0",
+    "protobufjs": "~7.2.5",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "prettier": "^3.0.3"
+  },
+  "lint-staged": {
+    "*.{js,css,md}": "prettier --write"
   }
 }
