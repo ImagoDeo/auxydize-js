@@ -58,11 +58,12 @@ function decryptDB() {
 }
 
 function insertSecret(secret) {
-  const insert = secretsdb.prepare(
-    'INSERT INTO secrets ( name, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  const insertSecret = secretsdb.prepare(
+    'INSERT INTO secrets ( name, alias, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
   );
-  insert.run(
+  insertSecret.run(
     secret.name,
+    secret.alias,
     secret.algorithm,
     secret.digits,
     secret.interval,
@@ -70,6 +71,13 @@ function insertSecret(secret) {
     secret.secret,
     secret.notes,
   );
+}
+
+function insertAlias(name, alias) {
+  const insertAlias = secretsdb.prepare(
+    'UPDATE secrets SET alias = ? WHERE name = ?',
+  );
+  insertAlias.run(alias, name);
 }
 
 function deleteSecretByName(name) {
@@ -86,6 +94,30 @@ function getSecretByName(name) {
   return getSecretByName.get(name);
 }
 
+function getSecretByAlias(alias) {
+  const getSecretByAlias = secretsdb.prepare(
+    'SELECT * FROM secrets WHERE name = ?',
+  );
+  return getSecretByAlias.get(alias);
+}
+
+function getAllSecretNames() {
+  const getAllSecretNames = secretsdb.prepare('SELECT name FROM secrets');
+  return getAllSecretNames.all();
+}
+
+function getAllSecretAliases() {
+  const getAllSecretAliases = secretsdb.prepare('SELECT alias FROM secrets');
+  return getAllSecretAliases.all();
+}
+
+function getAllSecretNamesAndAliases() {
+  const getAllSecretNamesAndAliases = secretsdb.prepare(
+    'SELECT name, alias FROM secrets',
+  );
+  return getAllSecretNamesAndAliases.all();
+}
+
 function getAllSecrets() {
   const getAllSecrets = secretsdb.prepare('SELECT * FROM secrets');
   return getAllSecrets.all();
@@ -100,7 +132,12 @@ module.exports = {
   encryptDB,
   decryptDB,
   insertSecret,
+  insertAlias,
   deleteSecretByName,
   getSecretByName,
+  getSecretByAlias,
+  getAllSecretNames,
+  getAllSecretAliases,
+  getAllSecretNamesAndAliases,
   getAllSecrets,
 };

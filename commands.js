@@ -1,31 +1,100 @@
+const { default: jsQR } = require('jsqr');
 const {
   encryptDB,
   decryptDB,
   insertSecret,
   deleteSecretByName,
   getSecretByName,
+  getSecretByAlias,
+  getAllSecretNames,
+  getAllSecretAliases,
   getAllSecrets,
+  insertAlias,
+  getAllSecretNamesAndAliases,
 } = require('./db');
 const { formatTOTP } = require('./formatter');
 const { generateTOTP } = require('./generateTOTP');
 const { parseImportString } = require('./import');
+const sharp = require('sharp');
 
-// TODO: Work with aliases too, and regex match for secret names.
+// TODO: Add regex matching
 function cmdGet(options) {
-  let names = Array.isArray(options.name) ? options.name : [options.name];
-  if (names.length > 0) {
-    for (const name of names) {
-      const secret = getSecretByName(options.name);
-      if (!secret) console.log(`No secret found with name: ${options.name}`);
-      const { totp, validFor } = generateTOTP(secret);
-      console.log(formatTOTP(secret.name, totp, { validFor }));
-    }
+  const { name, alias, partial } = options;
+
+  let names = makeItAnArray(name);
+  let aliases = makeItAnArray(alias);
+
+  if (partial) {
+    getPartials(names, aliases);
   } else {
-    for (const secret of getAllSecrets()) {
-      const { totp, validFor } = generateTOTP(secret);
-      console.log(formatTOTP(secret.name, totp, { validFor }));
+    if (!names.length && !aliases.length) {
+      const secrets = getAllSecrets();
+
+      if (!secrets.length) {
+        console.log('No secrets found.');
+        return;
+      }
+
+      for (const secret of secrets) {
+        const { totp, validFor } = generateTOTP(secret);
+        console.log(formatTOTP(secret.name, totp, { validFor }));
+      }
+    } else {
+      for (const name of names) {
+        const secret = getSecretByName(name);
+        if (!secret) {
+          console.log(`No secret found with name: ${name}`);
+          continue;
+        }
+        const { totp, validFor } = generateTOTP(secret);
+        console.log(formatTOTP(secret.name, totp, { validFor }));
+      }
+
+      for (const alias of aliases) {
+        const secret = getSecretByAlias(alias);
+        if (!secret) {
+          console.log(`No secret found with alias: ${alias}`);
+          continue;
+        }
+        const { totp, validFor } = generateTOTP(secret);
+        console.log(formatTOTP(secret.name, totp, { validFor }));
+      }
     }
   }
+}
+
+function makeItAnArray(optionValue) {
+  if (optionValue === undefined) return [];
+  return Array.isArray(optionValue) ? optionValue : [optionValue];
+}
+
+function getPartials(partialNames, partialAliases) {
+  allNames = getAllSecretNames();
+  allAliases = getAllSecretAliases();
+
+  const getMatches = (all, partials) => {
+    let matches = {};
+    for (const partial of partials) {
+      matches[partial] = all.filter((elem) => elem.includes(partial));
+    }
+  };
+
+  const getTOTPs = (matches, fetcher) => {
+    for (const key of Object.keys(matches)) {
+      if (!matches[key].length) {
+        console.log(`No matches found for partial name/alias: ${key}`);
+        continue;
+      }
+      for (const match of matches[key]) {
+        const secret = fetcher(match);
+        const { totp, validFor } = generateTOTP(secret);
+        console.log(formatTOTP(secret.name, totp, { validFor }));
+      }
+    }
+  };
+
+  getTOTPs(getMatches(allNames, partialNames), getSecretByName);
+  getTOTPs(getMatches(allAliases, partialAliases), getSecretByAlias);
 }
 
 function cmdSet(options) {
@@ -33,6 +102,7 @@ function cmdSet(options) {
   const rawBytes = options.secret.split(' ').map((pair) => Number('0x' + pair));
   const secret = {
     name: options.name,
+    alias: options.alias,
     algorithm: options.algorithm || 'sha1',
     digits: Number(options.digits) || 6,
     interval: Number(options.interval) || 30,
@@ -41,6 +111,16 @@ function cmdSet(options) {
     notes: options.notes,
   };
   insertSecret(secret);
+}
+
+function cmdAlias(options) {
+  const { name, alias } = options;
+  insertAlias(name, alias);
+}
+
+function cmdList() {
+  const list = getAllSecretNamesAndAliases();
+  console.dir(list);
 }
 
 // TODO: Aliases and regex matching
@@ -67,26 +147,53 @@ function cmdDecrypt() {
   decryptDB();
 }
 
-// TODO: Refactor - string and file might be arrays
-function cmdImport(options) {
-  if (options.string) {
-    for (const secret of parseImportString(options.string)) {
+async function cmdImport(options) {
+  const { string, file } = options;
+
+  let strings = makeItAnArray(string);
+  let files = makeItAnArray(file);
+
+  files = expandHome(files);
+
+  for (const file of files) {
+    const migrationString = await decodeQR(file);
+    strings.push(migrationString);
+  }
+
+  for (const string of strings) {
+    for (const secret of parseImportString(string)) {
       insertSecret(secret);
     }
-  } else if (options.file) {
-    console.log('Not yet implemented.');
   }
 }
+
+async function decodeQR(filePath) {
+  const { data, info } = await sharp(filePath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const imageData = new Uint8ClampedArray(data);
+  const { data: migrationString } = jsQR(imageData, info.width, info.height);
+
+  return migrationString;
+}
+
+function expandHome(filePaths) {
+  return filePaths.map((str) => {
+    const replacement = str.replace(/^~/, process.env.HOME);
+    return replacement;
+  });
+}
+
 // TODO: Additional commands:
-// - import (extend) - Option to read an image file (jsqr?)
-// - alias - give a secret an alias for easier getting. (db change)
-// - list - list the names (and aliases) of all secrets.
 // - edit - edit a secret by name or alias
 // - export - export as qr, option to provide filepath
 
 module.exports = {
   cmdGet,
   cmdSet,
+  cmdAlias,
+  cmdList,
   cmdRemove,
   cmdEncrypt,
   cmdDecrypt,

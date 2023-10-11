@@ -9,6 +9,8 @@ const {
   cmdEncrypt,
   cmdDecrypt,
   cmdImport,
+  cmdAlias,
+  cmdList,
 } = require('../commands');
 const readline = require('node:readline/promises');
 const { stdin: input, stdout: output } = require('node:process');
@@ -40,7 +42,6 @@ async function database(argv) {
     argv.version ||
     argv._.includes('version')
   ) {
-    console.log('help or version, not connecting');
     return argv;
   }
 
@@ -79,7 +80,7 @@ function noArraysExcept(exclusions = []) {
 
 async function main() {
   try {
-    const argv = await yargs(hideBin(process.argv))
+    await yargs(hideBin(process.argv))
       .command(
         'get',
         'generate TOTPs',
@@ -91,6 +92,19 @@ async function main() {
               type: 'string',
               requiresArg: true,
             })
+            .option('alias', {
+              alias: 'a',
+              describe: 'the alias of a secret from which to generate a TOTP',
+              type: 'string',
+              requiresArg: true,
+            })
+            .option('partial', {
+              alias: 'p',
+              describe:
+                'return TOTPs for partial matches on secret names and aliases',
+              type: 'boolean',
+            })
+            .group(['name', 'alias', 'partial'], 'GET options:')
             .check(noArraysExcept(['name', 'n']), false);
         },
         cmdGet,
@@ -107,6 +121,12 @@ async function main() {
               requiresArg: true,
               demandOption: true,
             })
+            .option('alias', {
+              alias: 'a',
+              describe: 'an alias to reference the secret more easily',
+              type: 'string',
+              requiresArg: true,
+            })
             .option('secret', {
               alias: 's',
               describe:
@@ -116,7 +136,7 @@ async function main() {
               demandOption: true,
             })
             .option('algorithm', {
-              alias: 'a',
+              alias: 'g',
               describe:
                 'the algorithm to use for generating a TOTP with this secret',
               type: 'string',
@@ -153,10 +173,47 @@ async function main() {
               type: 'string',
               requiresArg: true,
             })
+            .group(
+              [
+                'name',
+                'alias',
+                'secret',
+                'algorithm',
+                'digits',
+                'interval',
+                'tzero',
+                'notes',
+              ],
+              'SET options:',
+            )
             .check(noArraysExcept(['notes', 'm']), false);
         },
         cmdSet,
       )
+      .command(
+        'alias',
+        'adds an alias to a secret',
+        (yargs) => {
+          return yargs
+            .option('name', {
+              alias: 'n',
+              describe: 'name of the secret to alias',
+              type: 'string',
+              requiresArg: true,
+              demandOption: true,
+            })
+            .option('alias', {
+              alias: 'a',
+              describe: 'the alias to give to the named secret',
+              type: 'string',
+              requiresArg: true,
+              demandOption: true,
+            })
+            .group(['name', 'alias'], 'ALIAS options:');
+        },
+        cmdAlias,
+      )
+      .command('list', 'lists all secrets and their aliases', {}, cmdList)
       .command(
         'remove',
         'removes a secret from the database',
@@ -169,6 +226,7 @@ async function main() {
               requiresArg: true,
               demandOption: true,
             })
+            .group('name', 'REMOVE options:')
             .check(noArraysExcept(['name', 'n']), false);
         },
         cmdRemove,
@@ -194,7 +252,14 @@ async function main() {
               type: 'string',
               requiresArg: true,
             })
-            .check(noArraysExcept(['string', 's', 'file', 'f']), false);
+            .group(['string', 'file'], 'IMPORT options:')
+            .check(noArraysExcept(['string', 's', 'file', 'f']), false)
+            .check(
+              (argv) =>
+                argv.string?.length ||
+                argv.file?.length ||
+                'No strings or files specified',
+            );
         },
         cmdImport,
       )
@@ -210,10 +275,7 @@ async function main() {
         type: 'boolean',
       })
       .help()
-      .middleware(database)
-      .check((argv) => {}).argv;
-
-    console.dir(argv);
+      .middleware(database).argv;
   } catch (error) {
     cleanup();
     rl.close();

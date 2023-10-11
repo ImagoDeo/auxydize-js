@@ -14,7 +14,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "better-sqlite3-multiple-ciphers": "^8.7.0",
+    "jsqr": "^1.4.0",
     "protobufjs": "~7.2.5",
+    "sharp": "^0.32.6",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

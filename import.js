@@ -9,7 +9,7 @@ const root = protobuf
 const migrationPayload = root.lookupType('MigrationPayload');
 const algorithm = root.lookupEnum('Algorithm');
 const digitCount = root.lookupEnum('DigitCount');
-const otpType = root.lookupEnum('OtpType');
+// const otpType = root.lookupEnum('OtpType');
 
 function parseImportString(importString) {
   const secrets = [];
