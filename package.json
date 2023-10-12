@@ -1,7 +1,10 @@
 {
   "name": "auxydize",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "AuxydizeJS is a JS prototype of Auxydize, a Rust Time-Based One-Time Password generator for the command line.",
+  "repository": "https://github.com/ImagoDeo/auxydize-js",
+  "bugs": "https://github.com/ImagoDeo/auxydize-js/issues",
+  "homepage": "https://github.com/ImagoDeo/auxydize-js",
   "main": "bin/index.js",
   "bin": {
     "aux": "./bin/index.js"
@@ -13,7 +16,7 @@
   "author": "kieffer.joshua.k@gmail.com",
   "license": "UNLICENSED",
   "dependencies": {
-    "ansi-escapes": "^6.2.0",
+    "ansi-escapes": "^4.3.2",
     "better-sqlite3-multiple-ciphers": "^8.7.0",
     "cross-spawn": "^7.0.3",
     "jsqr": "^1.4.0",

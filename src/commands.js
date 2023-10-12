@@ -144,7 +144,11 @@ async function cmdEncrypt() {
       password2 = await prompt('Re-enter password: ');
     } while (!password2);
 
-    if (password1 === password2) password = password1;
+    if (password1 === password2) {
+      password = password1;
+    } else {
+      console.log('Passwords did not match.');
+    }
   } while (!password);
 
   encryptDB(password);
