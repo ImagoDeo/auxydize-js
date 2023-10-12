@@ -87,7 +87,7 @@ const notty = (ask) => {
 
 function prompt(ask, options = {}) {
   stdin.setEncoding('utf8');
-  const options = {
+  options = {
     required: options.default === undefined,
     default: '',
     ...options,

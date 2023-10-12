@@ -305,12 +305,10 @@ async function main() {
       .middleware(database).argv;
   } catch (error) {
     cleanup();
-    rl.close();
     console.error(error);
     process.exit(1);
   } finally {
     cleanup();
-    rl.close();
   }
 }
 

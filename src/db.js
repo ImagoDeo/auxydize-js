@@ -4,6 +4,7 @@ const path = require('path');
 const { getDBPath } = require('./dbPath');
 
 const dbpath = getDBPath();
+const schemaPath = path.join(__dirname, 'resources/schema.sql');
 
 const verboseLogger = (sqlString) => console.log('SQLITE:', sqlString);
 
@@ -21,9 +22,7 @@ function connectDB(verbose) {
 function createAndConnectDB(verbose) {
   secretsdb = new Database(dbpath, { verbose: verbose ? verboseLogger : null });
 
-  const create = secretsdb.prepare(
-    fs.readFileSync(path.join(__dirname, 'resources/schema.sql'), 'utf8'),
-  );
+  const create = secretsdb.prepare(fs.readFileSync(schemaPath, 'utf8'));
 
   create.run();
 }

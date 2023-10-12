@@ -3,10 +3,9 @@ const protobuf = require('protobufjs');
 const { default: jsQR } = require('jsqr');
 const sharp = require('sharp');
 
-// TODO: Save stuff in the right directories
-const root = protobuf
-  .loadSync(path.join(__dirname, 'resoures/OtpMigration.proto'))
-  .resolveAll();
+const protoPath = path.join(__dirname, 'resources/OtpMigration.proto');
+
+const root = protobuf.loadSync(protoPath).resolveAll();
 
 const migrationPayload = root.lookupType('MigrationPayload');
 const algorithm = root.lookupEnum('Algorithm');
