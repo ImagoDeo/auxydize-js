@@ -109,7 +109,7 @@ function cmdSet(options) {
     interval: Number(options.interval) || 30,
     tzero: Number(options.tzero) || 0,
     secret: Buffer.from(rawBytes),
-    notes: options.notes,
+    notes: arrayify(options.notes).join('\n'),
   };
   insertSecret(secret);
 }

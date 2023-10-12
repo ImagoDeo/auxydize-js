@@ -69,7 +69,7 @@ function insertSecret(secret) {
     secret.interval,
     secret.tzero,
     secret.secret,
-    secret.notes.join('\n'),
+    secret.notes,
   );
 }
 
