@@ -11,6 +11,7 @@ const {
   cmdImport,
   cmdAlias,
   cmdList,
+  cmdDetails,
 } = require('../commands');
 const readline = require('node:readline/promises');
 const { stdin: input, stdout: output } = require('node:process');
@@ -213,7 +214,12 @@ async function main() {
         },
         cmdAlias,
       )
-      .command('list', 'lists all secrets and their aliases', {}, cmdList)
+      .command(
+        ['list', 'ls'],
+        'lists all secrets and their aliases',
+        {},
+        cmdList,
+      )
       .command(
         'remove',
         'removes a secret from the database',
@@ -231,7 +237,7 @@ async function main() {
         },
         cmdRemove,
       )
-      .command('encrypt', 'encrypts the secrets database', {}, cmdEncrypt)
+      .command('encrypt', 'encrypts the secrets database', {}, cmdEncrypt(rl))
       .command('decrypt', 'decrypts the secrets database', {}, cmdDecrypt)
       .command(
         'import',
@@ -248,7 +254,7 @@ async function main() {
             .option('file', {
               alias: 'f',
               describe:
-                'an image file containing a QR code which contains a URI-encoded base64 string generated from a Google Protocol Buffer containing exported Google Authenticator secrets',
+                'a path to an image file containing a QR code which contains a URI-encoded base64 string generated from a Google Protocol Buffer containing exported Google Authenticator secrets',
               type: 'string',
               requiresArg: true,
             })
@@ -263,6 +269,33 @@ async function main() {
         },
         cmdImport,
       )
+      .command(
+        'details',
+        'shows the details of a specific secret',
+        (yargs) => {
+          return yargs
+            .option('name', {
+              alias: 'n',
+              describe: 'name of the secret to display',
+              type: 'string',
+              requiresArg: true,
+            })
+            .option('alias', {
+              alias: 'a',
+              describe: 'alias of the secret to display',
+              type: 'string',
+              requiresArg: true,
+            })
+            .conflicts('name', 'alias')
+            .check(
+              (argv) =>
+                !!argv.name || !!argv.alias || 'No name or alias specified',
+              false,
+            )
+            .group(['name', 'alias'], 'DETAILS options:');
+        },
+        cmdDetails,
+      )
       .demandCommand(
         1,
         1,
@@ -275,6 +308,7 @@ async function main() {
         type: 'boolean',
       })
       .help()
+      .updateStrings({ 'Options:': 'Global options:' })
       .middleware(database).argv;
   } catch (error) {
     cleanup();

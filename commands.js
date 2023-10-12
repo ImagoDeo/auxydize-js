@@ -21,8 +21,8 @@ const sharp = require('sharp');
 function cmdGet(options) {
   const { name, alias, partial } = options;
 
-  let names = makeItAnArray(name);
-  let aliases = makeItAnArray(alias);
+  let names = arrayify(name);
+  let aliases = arrayify(alias);
 
   if (partial) {
     getPartials(names, aliases);
@@ -63,20 +63,21 @@ function cmdGet(options) {
   }
 }
 
-function makeItAnArray(optionValue) {
+function arrayify(optionValue) {
   if (optionValue === undefined) return [];
   return Array.isArray(optionValue) ? optionValue : [optionValue];
 }
 
 function getPartials(partialNames, partialAliases) {
   allNames = getAllSecretNames();
-  allAliases = getAllSecretAliases();
+  allAliases = getAllSecretAliases().filter((alias) => alias !== null); // alias can be null
 
   const getMatches = (all, partials) => {
     let matches = {};
     for (const partial of partials) {
       matches[partial] = all.filter((elem) => elem.includes(partial));
     }
+    return matches;
   };
 
   const getTOTPs = (matches, fetcher) => {
@@ -150,8 +151,8 @@ function cmdDecrypt() {
 async function cmdImport(options) {
   const { string, file } = options;
 
-  let strings = makeItAnArray(string);
-  let files = makeItAnArray(file);
+  let strings = arrayify(string);
+  let files = arrayify(file);
 
   files = expandHome(files);
 
@@ -164,6 +165,15 @@ async function cmdImport(options) {
     for (const secret of parseImportString(string)) {
       insertSecret(secret);
     }
+  }
+}
+
+function cmdDetails(options) {
+  const { name, alias } = options;
+  if (name) {
+    console.dir(getSecretByName(name));
+  } else if (alias) {
+    console.dir(getSecretByAlias(alias));
   }
 }
 
@@ -198,4 +208,5 @@ module.exports = {
   cmdEncrypt,
   cmdDecrypt,
   cmdImport,
+  cmdDetails,
 };

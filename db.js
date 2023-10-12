@@ -69,7 +69,7 @@ function insertSecret(secret) {
     secret.interval,
     secret.tzero,
     secret.secret,
-    secret.notes,
+    secret.notes.join('\n'),
   );
 }
 
@@ -96,19 +96,19 @@ function getSecretByName(name) {
 
 function getSecretByAlias(alias) {
   const getSecretByAlias = secretsdb.prepare(
-    'SELECT * FROM secrets WHERE name = ?',
+    'SELECT * FROM secrets WHERE alias = ?',
   );
   return getSecretByAlias.get(alias);
 }
 
 function getAllSecretNames() {
   const getAllSecretNames = secretsdb.prepare('SELECT name FROM secrets');
-  return getAllSecretNames.all();
+  return getAllSecretNames.all().map((row) => row.name);
 }
 
 function getAllSecretAliases() {
   const getAllSecretAliases = secretsdb.prepare('SELECT alias FROM secrets');
-  return getAllSecretAliases.all();
+  return getAllSecretAliases.all().map((row) => row.alias);
 }
 
 function getAllSecretNamesAndAliases() {
