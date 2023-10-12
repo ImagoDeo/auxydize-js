@@ -1,9 +1,11 @@
-const protobuf = require('protobufjs');
 const path = require('path');
+const protobuf = require('protobufjs');
+const { default: jsQR } = require('jsqr');
+const sharp = require('sharp');
 
 // TODO: Save stuff in the right directories
 const root = protobuf
-  .loadSync(path.join(__dirname, 'OtpMigration.proto'))
+  .loadSync(path.join(__dirname, 'resoures/OtpMigration.proto'))
   .resolveAll();
 
 const migrationPayload = root.lookupType('MigrationPayload');
@@ -11,12 +13,12 @@ const algorithm = root.lookupEnum('Algorithm');
 const digitCount = root.lookupEnum('DigitCount');
 // const otpType = root.lookupEnum('OtpType');
 
-function parseImportString(importString) {
+function parseGoogleMigrationString(migrationString) {
   const secrets = [];
 
   const result = Buffer.from(
     decodeURIComponent(
-      importString.replace(/otpauth-migration:\/\/offline\?data=/, ''),
+      migrationString.replace(/otpauth-migration:\/\/offline\?data=/, ''),
     ),
     'base64',
   );
@@ -50,4 +52,15 @@ function parseImportString(importString) {
   return secrets;
 }
 
-module.exports = { parseImportString };
+async function decodeQR(filePath) {
+  const { data, info } = await sharp(filePath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const imageData = new Uint8ClampedArray(data);
+  const { data: migrationString } = jsQR(imageData, info.width, info.height);
+
+  return migrationString;
+}
+
+module.exports = { parseGoogleMigrationString, decodeQR };

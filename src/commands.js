@@ -1,4 +1,3 @@
-const { default: jsQR } = require('jsqr');
 const {
   encryptDB,
   decryptDB,
@@ -13,9 +12,10 @@ const {
   getAllSecretNamesAndAliases,
 } = require('./db');
 const { formatTOTP } = require('./formatter');
-const { generateTOTP } = require('./generateTOTP');
-const { parseImportString } = require('./import');
-const sharp = require('sharp');
+const { generateTOTP } = require('./generator');
+const { parseImportString, decodeQR } = require('./import');
+const { arrayify, expandHome } = require('./utils');
+
 const prompt = require('./promptForPassword');
 
 // TODO: Add regex matching
@@ -62,11 +62,6 @@ function cmdGet(options) {
       }
     }
   }
-}
-
-function arrayify(optionValue) {
-  if (optionValue === undefined) return [];
-  return Array.isArray(optionValue) ? optionValue : [optionValue];
 }
 
 function getPartials(partialNames, partialAliases) {
@@ -173,7 +168,7 @@ async function cmdImport(options) {
   }
 
   for (const string of strings) {
-    for (const secret of parseImportString(string)) {
+    for (const secret of parseGoogleMigrationString(string)) {
       insertSecret(secret);
     }
   }
@@ -187,24 +182,6 @@ function cmdDetails(options) {
   } else if (alias) {
     console.dir(getSecretByAlias(alias)); // TODO: Do better
   }
-}
-
-async function decodeQR(filePath) {
-  const { data, info } = await sharp(filePath)
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  const imageData = new Uint8ClampedArray(data);
-  const { data: migrationString } = jsQR(imageData, info.width, info.height);
-
-  return migrationString;
-}
-
-function expandHome(filePaths) {
-  return filePaths.map((str) => {
-    const replacement = str.replace(/^~/, process.env.HOME);
-    return replacement;
-  });
 }
 
 // TODO: Additional commands:

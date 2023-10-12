@@ -22,7 +22,7 @@ function createAndConnectDB(verbose) {
   secretsdb = new Database(dbpath, { verbose: verbose ? verboseLogger : null });
 
   const create = secretsdb.prepare(
-    fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'),
+    fs.readFileSync(path.join(__dirname, 'resources/schema.sql'), 'utf8'),
   );
 
   create.run();

@@ -12,27 +12,20 @@ const {
   cmdAlias,
   cmdList,
   cmdDetails,
-} = require('../commands');
-const readline = require('node:readline/promises');
-const { stdin: input, stdout: output } = require('node:process');
+} = require('../src/commands');
+const prompt = require('../src/promptForPassword');
 const {
   connectDB,
   createAndConnectDB,
   cleanup,
   isDBEncrypted,
   accessDB,
-} = require('../db');
+} = require('../src/db');
 
 function gracefulShutdown() {
-  console.log(
-    '\nClosing any open DB connections and I/O streams and shutting down.',
-  );
+  console.log('\nClosing any open DB connections and shutting down.');
   cleanup();
-  rl.close();
 }
-
-const rl = readline.createInterface({ input, output });
-rl.on('SIGINT', gracefulShutdown);
 
 process.on('SIGINT', gracefulShutdown);
 
@@ -53,7 +46,7 @@ async function database(argv) {
 
   if (isDBEncrypted()) {
     do {
-      const password = await rl.question(
+      const password = await prompt(
         'Secrets database is encrypted. Please enter the password: ',
       );
       accessDB(password);
@@ -237,7 +230,7 @@ async function main() {
         },
         cmdRemove,
       )
-      .command('encrypt', 'encrypts the secrets database', {}, cmdEncrypt(rl))
+      .command('encrypt', 'encrypts the secrets database', {}, cmdEncrypt)
       .command('decrypt', 'decrypts the secrets database', {}, cmdDecrypt)
       .command(
         'import',
