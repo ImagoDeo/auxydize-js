@@ -121,7 +121,7 @@ function cmdAlias(options) {
 
 function cmdList() {
   const list = getAllSecretNamesAndAliases();
-  console.dir(list);
+  console.dir(list); // TODO: Do better
 }
 
 // TODO: Aliases and regex matching
@@ -168,12 +168,13 @@ async function cmdImport(options) {
   }
 }
 
+// TODO: Should this show the raw secret?
 function cmdDetails(options) {
   const { name, alias } = options;
   if (name) {
-    console.dir(getSecretByName(name));
+    console.dir(getSecretByName(name)); // TODO: Do better
   } else if (alias) {
-    console.dir(getSecretByAlias(alias));
+    console.dir(getSecretByAlias(alias)); // TODO: Do better
   }
 }
 
