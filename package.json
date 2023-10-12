@@ -13,7 +13,9 @@
   "author": "kieffer.joshua.k@gmail.com",
   "license": "UNLICENSED",
   "dependencies": {
+    "ansi-escapes": "^6.2.0",
     "better-sqlite3-multiple-ciphers": "^8.7.0",
+    "cross-spawn": "^7.0.3",
     "jsqr": "^1.4.0",
     "protobufjs": "~7.2.5",
     "sharp": "^0.32.6",

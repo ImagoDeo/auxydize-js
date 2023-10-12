@@ -16,6 +16,7 @@ const { formatTOTP } = require('./formatter');
 const { generateTOTP } = require('./generateTOTP');
 const { parseImportString } = require('./import');
 const sharp = require('sharp');
+const prompt = require('./promptForPassword');
 
 // TODO: Add regex matching
 function cmdGet(options) {
@@ -129,19 +130,29 @@ function cmdRemove(options) {
   deleteSecretByName(options.name);
 }
 
-function cmdEncrypt(rl) {
-  return async () => {
-    console.log('THIS COMMAND ENCRYPTS YOUR SECRETS DATABASE.');
-    console.log(
-      'IF YOU LOSE THE PASSWORD, THIS CANNOT BE UNDONE AND YOU WILL LOSE ALL SECRETS.',
-    );
-    const password = await rl.question(
-      'Enter password to use for encryption (whitespace will be removed): ',
-    );
-    if (!password.trim().length)
-      throw new Error('Specified password was empty');
-    encryptDB(password.trim());
-  };
+async function cmdEncrypt() {
+  console.log('THIS COMMAND ENCRYPTS YOUR SECRETS DATABASE.');
+  console.log(
+    'IF YOU LOSE THE PASSWORD, THIS CANNOT BE UNDONE AND YOU WILL LOSE ALL SECRETS.',
+  );
+
+  let password;
+
+  do {
+    let password1, password2;
+    do {
+      password1 = await prompt(
+        'Enter password to use for encryption (whitespace will be trimmed): ',
+      );
+    } while (!password1);
+    do {
+      password2 = await prompt('Re-enter password: ');
+    } while (!password2);
+
+    if (password1 === password2) password = password1;
+  } while (!password);
+
+  encryptDB(password);
 }
 
 function cmdDecrypt() {
