@@ -1,3 +1,5 @@
+const { cleanup } = require('./db');
+
 function arrayify(optionValue) {
   if (optionValue === undefined) return [];
   return Array.isArray(optionValue) ? optionValue : [optionValue];
@@ -10,4 +12,9 @@ function expandHome(filePaths) {
   });
 }
 
-module.exports = { arrayify, expandHome };
+function gracefulShutdown() {
+  console.log('\nClosing any open DB connections and shutting down.');
+  cleanup();
+}
+
+module.exports = { arrayify, expandHome, gracefulShutdown };

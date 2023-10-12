@@ -6,6 +6,7 @@
 'use strict';
 
 const ansi = require('ansi-escapes');
+const { gracefulShutdown } = require('./utils');
 const stdin = process.stdin;
 const stderr = process.stderr;
 
@@ -36,8 +37,8 @@ const hide = (ask, options = {}) => {
     }
 
     function ctrlc() {
-      reject(new Error('SIGINT'));
       stop();
+      gracefulShutdown();
     }
 
     function backspace() {
