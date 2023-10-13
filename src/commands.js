@@ -11,14 +11,13 @@ const {
   insertAlias,
   getAllSecretNamesAndAliases,
 } = require('./db');
-const { formatTOTP } = require('./formatter');
 const { generateTOTP } = require('./generator');
 const { parseImportString, decodeQR } = require('./import');
 const { arrayify, expandHome } = require('./utils');
+const { status, totpList, listNameAndAlias, success } = require('./printer');
 
 const prompt = require('./promptForPassword');
 
-// TODO: Add regex matching
 function cmdGet(options) {
   const { name, alias, partial } = options;
 
@@ -26,72 +25,74 @@ function cmdGet(options) {
   let aliases = arrayify(alias);
 
   if (partial) {
-    getPartials(names, aliases);
+    convertPartials(names, aliases);
+  }
+
+  if (!names.length && !aliases.length) {
+    const secrets = getAllSecrets();
+
+    if (!secrets.length) {
+      console.log('No secrets found.');
+      return;
+    }
+
+    totpList(
+      secrets.map((secret) => {
+        const { totp, validFor } = generateTOTP(secret);
+        return {
+          name: secret.name,
+          totp,
+          validFor,
+        };
+      }),
+    );
   } else {
-    if (!names.length && !aliases.length) {
-      const secrets = getAllSecrets();
-
-      if (!secrets.length) {
-        console.log('No secrets found.');
-        return;
-      }
-
-      for (const secret of secrets) {
-        const { totp, validFor } = generateTOTP(secret);
-        console.log(formatTOTP(secret.name, totp, { validFor }));
-      }
+    if ([...names, ...aliases].length === 1) {
+      const secret = names.length
+        ? getSecretByName(names[0])
+        : getSecretByAlias(aliases[0]);
+      const { totp, validFor } = generateTOTP(secret);
+      totpList([{ name: secret.name, totp, validFor }]);
+      return;
     } else {
-      for (const name of names) {
-        const secret = getSecretByName(name);
-        if (!secret) {
-          console.log(`No secret found with name: ${name}`);
-          continue;
-        }
-        const { totp, validFor } = generateTOTP(secret);
-        console.log(formatTOTP(secret.name, totp, { validFor }));
-      }
-
-      for (const alias of aliases) {
-        const secret = getSecretByAlias(alias);
-        if (!secret) {
-          console.log(`No secret found with alias: ${alias}`);
-          continue;
-        }
-        const { totp, validFor } = generateTOTP(secret);
-        console.log(formatTOTP(secret.name, totp, { validFor }));
-      }
+      totpList(
+        [...names.map(getSecretByName), ...aliases.map(getSecretByAlias)].map(
+          (secret) => {
+            const { totp, validFor } = generateTOTP(secret);
+            return {
+              name: secret.name,
+              totp,
+              validFor,
+            };
+          },
+        ),
+      );
     }
   }
 }
 
-function getPartials(partialNames, partialAliases) {
-  allNames = getAllSecretNames();
-  allAliases = getAllSecretAliases().filter((alias) => alias !== null); // alias can be null
-
-  const getMatches = (all, partials) => {
-    let matches = {};
-    for (const partial of partials) {
-      matches[partial] = all.filter((elem) => elem.includes(partial));
+function convertPartials(partialNames, partialAliases) {
+  const getMatches = (all, param) => (prev, partial) => {
+    const matches = all.filter((e) => e.includes(partial));
+    if (!matches.length) {
+      status(`No matches found for partial ${param}: ${partial}`);
+    } else {
+      prev.push(...matches);
     }
-    return matches;
+    return prev;
   };
 
-  const getTOTPs = (matches, fetcher) => {
-    for (const key of Object.keys(matches)) {
-      if (!matches[key].length) {
-        console.log(`No matches found for partial name/alias: ${key}`);
-        continue;
-      }
-      for (const match of matches[key]) {
-        const secret = fetcher(match);
-        const { totp, validFor } = generateTOTP(secret);
-        console.log(formatTOTP(secret.name, totp, { validFor }));
-      }
-    }
-  };
-
-  getTOTPs(getMatches(allNames, partialNames), getSecretByName);
-  getTOTPs(getMatches(allAliases, partialAliases), getSecretByAlias);
+  partialNames = partialNames.reduce(
+    getMatches(getAllSecretNames(), 'name'),
+    [],
+  );
+  partialAliases = partialAliases.reduce(
+    getMatches(
+      getAllSecretAliases().filter((alias) => alias !== null),
+      'alias',
+    ),
+    [],
+  );
 }
 
 function cmdSet(options) {
@@ -113,14 +114,15 @@ function cmdSet(options) {
 function cmdAlias(options) {
   const { name, alias } = options;
   insertAlias(name, alias);
+  success(`Inserted alias '${alias}' for secret '${name}'`);
 }
 
 function cmdList() {
   const list = getAllSecretNamesAndAliases();
-  console.dir(list); // TODO: Do better
+  listNameAndAlias(list);
 }
 
-// TODO: Aliases and regex matching
+// TODO: Aliases
 function cmdRemove(options) {
   deleteSecretByName(options.name);
 }

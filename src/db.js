@@ -1,12 +1,11 @@
 const Database = require('better-sqlite3-multiple-ciphers');
 const fs = require('fs');
 const path = require('path');
+const { success, verboseSQLiteLogger } = require('./printer');
 const { getDBPath } = require('./dbPath');
 
 const dbpath = getDBPath();
 const schemaPath = path.join(__dirname, 'resources/schema.sql');
-
-const verboseLogger = (sqlString) => console.log('SQLITE:', sqlString);
 
 let secretsdb;
 
@@ -14,7 +13,7 @@ function connectDB(verbose) {
   const init = fs.existsSync(dbpath);
   if (init)
     secretsdb = new Database(dbpath, {
-      verbose: verbose ? verboseLogger : null,
+      verbose: verbose ? verboseSQLiteLogger : null,
     });
   return init;
 }
@@ -45,15 +44,18 @@ function isDBEncrypted() {
 }
 
 function accessDB(password) {
-  secretsdb.pragma(`key='${password}'`);
+  const result = secretsdb.pragma(`key='${password}'`, { simple: true });
+  if (result === 'ok') success('DB access granted.');
 }
 
 function encryptDB(password) {
-  secretsdb.pragma(`rekey='${password}'`);
+  const result = secretsdb.pragma(`rekey='${password}'`, { simple: true });
+  if (result === 'ok') success('DB encrypted.');
 }
 
 function decryptDB() {
-  secretsdb.pragma(`rekey=''`);
+  const result = secretsdb.pragma(`rekey=''`, { simple: true });
+  if (result === 'ok') success('DB decrypted.');
 }
 
 function insertSecret(secret) {
@@ -70,6 +72,7 @@ function insertSecret(secret) {
     secret.secret,
     secret.notes,
   );
+  success(`${secret.name} successfully inserted.`);
 }
 
 function insertAlias(name, alias) {

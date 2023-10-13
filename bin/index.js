@@ -22,6 +22,7 @@ const {
   accessDB,
 } = require('../src/db');
 const { gracefulShutdown } = require('../src/utils');
+const chalk = require('chalk');
 
 process.on('SIGINT', gracefulShutdown);
 
@@ -43,7 +44,8 @@ async function database(argv) {
   if (isDBEncrypted()) {
     do {
       const password = await prompt(
-        'Secrets database is encrypted. Please enter the password: ',
+        chalk.yellow('STATUS: ') +
+          'Secrets database is encrypted. Please enter the password: ',
       );
       accessDB(password);
     } while (isDBEncrypted());

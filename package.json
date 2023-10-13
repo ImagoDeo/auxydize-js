@@ -18,6 +18,8 @@
   "dependencies": {
     "ansi-escapes": "^4.3.2",
     "better-sqlite3-multiple-ciphers": "^8.7.0",
+    "chalk": "^4.1.2",
+    "columnify": "^1.6.0",
     "cross-spawn": "^7.0.3",
     "jsqr": "^1.4.0",
     "protobufjs": "~7.2.5",
