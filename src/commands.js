@@ -31,7 +31,9 @@ function cmdGet(options) {
   let aliases = arrayify(alias);
 
   if (partial) {
-    convertPartials(names, aliases);
+    const { matchedNames, matchedAliases } = convertPartials(names, aliases);
+    names = matchedNames;
+    aliases = matchedAliases;
   }
 
   if (!names.length && !aliases.length) {
@@ -88,17 +90,23 @@ function convertPartials(partialNames, partialAliases) {
     return prev;
   };
 
-  partialNames = partialNames.reduce(
+  const matchedNames = partialNames.reduce(
     getMatches(getAllSecretNames(), 'name'),
     [],
   );
-  partialAliases = partialAliases.reduce(
+
+  const matchedAliases = partialAliases.reduce(
     getMatches(
       getAllSecretAliases().filter((alias) => alias !== null),
       'alias',
     ),
     [],
   );
+
+  return {
+    matchedNames,
+    matchedAliases,
+  };
 }
 
 function cmdSet(options) {

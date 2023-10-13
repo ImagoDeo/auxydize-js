@@ -95,7 +95,7 @@ async function main() {
               'return TOTPs for partial matches on secret names and aliases',
             type: 'boolean',
           })
-          .check(noArraysExcept(['name', 'n']), false)
+          .check(noArraysExcept(['name', 'n', 'alias', 'a']), false)
           .group(['name', 'alias', 'partial'], 'GET options:');
       },
       cmdGet,
