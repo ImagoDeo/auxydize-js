@@ -6,11 +6,12 @@ TODO:
 - Add eslint + config
 - Some kind of bundling/compile for bin install?
 - Todos in files
+  - edit command
+  - export command
 - Unit tests
-- Chalk
-- Log more outputs as processes continue
+  - Not exhaustive. Lean.
 - Verbose for verbose outputs
-- Improve output for ls, details, generate, etc. (see Chalk above)
 - Add confirmation step for decrypting the database
 - Add confirmation step for removing a secret
-- Add sensible command aliases
+- Refactor: use commands directory functionality for Yargs
+- Refactor: add issuer field in db
