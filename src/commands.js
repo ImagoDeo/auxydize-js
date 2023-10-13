@@ -14,7 +14,13 @@ const {
 const { generateTOTP } = require('./generator');
 const { parseImportString, decodeQR } = require('./import');
 const { arrayify, expandHome } = require('./utils');
-const { status, totpList, listNameAndAlias, success } = require('./printer');
+const {
+  success,
+  status,
+  totpList,
+  listNameAndAlias,
+  details,
+} = require('./printer');
 
 const prompt = require('./promptForPassword');
 
@@ -180,13 +186,12 @@ async function cmdImport(options) {
   }
 }
 
-// TODO: Should this show the raw secret?
 function cmdDetails(options) {
-  const { name, alias } = options;
+  const { name, alias, mask } = options;
   if (name) {
-    console.dir(getSecretByName(name)); // TODO: Do better
+    details(getSecretByName(name), mask);
   } else if (alias) {
-    console.dir(getSecretByAlias(alias)); // TODO: Do better
+    details(getSecretByAlias(alias), mask);
   }
 }
 

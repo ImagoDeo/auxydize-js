@@ -95,13 +95,13 @@ async function main() {
               'return TOTPs for partial matches on secret names and aliases',
             type: 'boolean',
           })
-          .group(['name', 'alias', 'partial'], 'GET options:')
-          .check(noArraysExcept(['name', 'n']), false);
+          .check(noArraysExcept(['name', 'n']), false)
+          .group(['name', 'alias', 'partial'], 'GET options:');
       },
       cmdGet,
     )
     .command(
-      'set',
+      ['set', 'add'],
       'add a secret with metadata',
       (yargs) => {
         return yargs
@@ -164,6 +164,7 @@ async function main() {
             type: 'string',
             requiresArg: true,
           })
+          .check(noArraysExcept(['notes', 'm']), false)
           .group(
             [
               'name',
@@ -176,13 +177,12 @@ async function main() {
               'notes',
             ],
             'SET options:',
-          )
-          .check(noArraysExcept(['notes', 'm']), false);
+          );
       },
       cmdSet,
     )
     .command(
-      'alias',
+      ['alias', 'nickname'],
       'adds an alias to a secret',
       (yargs) => {
         return yargs
@@ -200,13 +200,14 @@ async function main() {
             requiresArg: true,
             demandOption: true,
           })
+          .check(noArraysExcept([]), false)
           .group(['name', 'alias'], 'ALIAS options:');
       },
       cmdAlias,
     )
     .command(['list', 'ls'], 'lists all secrets and their aliases', {}, cmdList)
     .command(
-      'remove',
+      ['remove', 'delete', 'rm'],
       'removes a secret from the database',
       (yargs) => {
         return yargs
@@ -222,8 +223,18 @@ async function main() {
       },
       cmdRemove,
     )
-    .command('encrypt', 'encrypts the secrets database', {}, cmdEncrypt)
-    .command('decrypt', 'decrypts the secrets database', {}, cmdDecrypt)
+    .command(
+      ['encrypt', 'lock'],
+      'encrypts the secrets database',
+      {},
+      cmdEncrypt,
+    )
+    .command(
+      ['decrypt', 'unlock'],
+      'decrypts the secrets database',
+      {},
+      cmdDecrypt,
+    )
     .command(
       'import',
       'imports secrets from image files containing QR codes or from Google Authenticator migration strings',
@@ -255,7 +266,7 @@ async function main() {
       cmdImport,
     )
     .command(
-      'details',
+      ['details', 'show'],
       'shows the details of a specific secret',
       (yargs) => {
         return yargs
@@ -271,13 +282,20 @@ async function main() {
             type: 'string',
             requiresArg: true,
           })
+          .option('mask', {
+            alias: 'm',
+            describe: 'whether to mask the raw secret (default true)',
+            type: 'boolean',
+            default: true,
+          })
           .conflicts('name', 'alias')
+          .check(noArraysExcept([]), false)
           .check(
             (argv) =>
               !!argv.name || !!argv.alias || 'No name or alias specified',
             false,
           )
-          .group(['name', 'alias'], 'DETAILS options:');
+          .group(['name', 'alias', 'mask'], 'DETAILS options:');
       },
       cmdDetails,
     )

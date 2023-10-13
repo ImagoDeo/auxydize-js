@@ -1,9 +1,6 @@
 const chalk = require('chalk');
 const columnify = require('columnify');
 
-// TODO: Stuff to print:
-// - DETAILS: single secret
-
 function success(string) {
   console.log(chalk.green('SUCCESS: ') + string);
 }
@@ -31,13 +28,13 @@ function totpList(list) {
         };
       }),
       {
-        columns: ['name', 'code', 'lifetime', 'index'],
+        columns: ['code', 'name', 'lifetime', 'index'],
         config: {
           index: {
             showHeaders: false,
           },
         },
-        headingTransform: (heading) => chalk.underline(heading),
+        headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
       },
     ),
   );
@@ -53,6 +50,16 @@ function listNameAndAlias(list) {
   );
 }
 
+function details(secret, mask) {
+  console.log(
+    columnify(secret, {
+      dataTransform: (value, col) => {
+        return col.name === 'secret' && mask ? '*'.repeat(value.length) : value;
+      },
+    }),
+  );
+}
+
 function verboseSQLiteLogger(string) {
   console.log(chalk.bold().cyanBright('SQLITE: ') + string);
 }
@@ -62,5 +69,6 @@ module.exports = {
   status,
   totpList,
   listNameAndAlias,
+  details,
   verboseSQLiteLogger,
 };
