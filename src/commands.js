@@ -12,7 +12,11 @@ const {
   getAllSecretNamesAndAliases,
 } = require('./db');
 const { generateTOTP } = require('./generator');
-const { parseGoogleMigrationString, decodeQR } = require('./import');
+const {
+  parseFreeOTPPlusBackupJSON,
+  decodeQR,
+  parseImportString,
+} = require('./import');
 const { arrayify, expandHome } = require('./utils');
 const {
   success,
@@ -176,12 +180,23 @@ function cmdDecrypt() {
 }
 
 async function cmdImport(options) {
-  const { string, file } = options;
+  const { string, file, json } = options;
 
   let strings = arrayify(string);
   let files = arrayify(file);
+  let jsons = arrayify(json);
 
   files = expandHome(files);
+  jsons = expandHome(jsons);
+
+  for (const json of jsons) {
+    try {
+      const secret = parseFreeOTPPlusBackupJSON(json);
+      insertSecret(secret);
+    } catch (error) {
+      status(error.message);
+    }
+  }
 
   for (const file of files) {
     const migrationString = await decodeQR(file);
@@ -189,7 +204,7 @@ async function cmdImport(options) {
   }
 
   for (const string of strings) {
-    for (const secret of parseGoogleMigrationString(string)) {
+    for (const secret of parseImportString(string)) {
       insertSecret(secret);
     }
   }

@@ -245,25 +245,33 @@ async function main() {
     .command(
       // TODO: Rework. New import types.
       'import',
-      'imports secrets from image files containing QR codes or from Google Authenticator migration strings',
+      'imports secrets from image files containing QR codes or from raw URI migration strings',
       (yargs) => {
         return yargs
           .option('string', {
             alias: 's',
-            describe:
-              'a URI-encoded base64 string generated from a Google Protocol Buffer containing exported Google Authenticator secrets',
+            describe: 'a URI containing one or more secrets',
             type: 'string',
             requiresArg: true,
           })
           .option('file', {
             alias: 'f',
+            describe: 'a filepath to an image containing one or more secrets',
+            type: 'string',
+            requiresArg: true,
+          })
+          .option('json', {
+            alias: 'j',
             describe:
-              'a path to an image file containing a QR code which contains a URI-encoded base64 string generated from a Google Protocol Buffer containing exported Google Authenticator secrets',
+              'stringified JSON or a filepath to a JSON file containing FreeOTP+ exported secrets',
             type: 'string',
             requiresArg: true,
           })
           .group(['string', 'file'], 'IMPORT options:')
-          .check(noArraysExcept(['string', 's', 'file', 'f']), false)
+          .check(
+            noArraysExcept(['string', 's', 'file', 'f', 'json', 'j']),
+            false,
+          )
           .check(
             (argv) =>
               argv.string?.length ||
@@ -292,7 +300,7 @@ async function main() {
           })
           .option('mask', {
             alias: 'm',
-            describe: 'whether to mask the raw secret (default true)',
+            describe: 'whether to mask the raw secret',
             type: 'boolean',
             default: true,
           })

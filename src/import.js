@@ -15,12 +15,15 @@ const algorithm = root.lookupEnum('Algorithm');
 const digitCount = root.lookupEnum('DigitCount');
 // const otpType = root.lookupEnum('OtpType');
 
+const otpauthRegex = '^otpauth://totp/([^?]+)\\?(.*)$';
+const migrataionRegex = '^otpauth-migration://offline\\?data=[A-Za-z0-9%]+$';
+
 function parseGoogleMigrationString(migrationString) {
   const secrets = [];
 
   const result = Buffer.from(
     decodeURIComponent(
-      migrationString.replace(/otpauth-migration:\/\/offline\?data=/, ''),
+      migrationString.replace(/^otpauth-migration:\/\/offline\?data=/, ''),
     ),
     'base64',
   );
@@ -67,7 +70,7 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
       parsed = JSON.parse(fileContents);
     } catch (_) {
       throw new Error(
-        'Provided string was not parseable JSON or a filepath to a file containing parseable JSON',
+        `Provided string was not parseable JSON or a filepath to a file containing parseable JSON: ${filePathOrRawJSON}`,
       );
     }
   }
@@ -87,7 +90,7 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
 // Currently unused.
 function parseOtpAuthUri(otpAuthUriString) {
   const decodedString = decodeURIComponent(otpAuthUriString);
-  const regex = new RegExp('^otpauth://totp/([^?]+)\\?(.*)$');
+  const regex = new RegExp(otpauthRegex);
   const matches = regex.exec(decodedString).slice(1, 3);
   const [issuer, label] = matches[0].split(':');
   const params = qs.parse(matches[1]);
@@ -114,9 +117,15 @@ async function decodeQR(filePath) {
   return migrationString;
 }
 
+function parseImportString(string) {
+  if (new RegExp(otpauthRegex).test(string)) return [parseOtpAuthUri(string)];
+  if (new RegExp(migrataionRegex).test(string))
+    return parseGoogleMigrationString(string);
+  return [];
+}
+
 module.exports = {
-  parseGoogleMigrationString,
   parseFreeOTPPlusBackupJSON,
-  parseOtpAuthUri,
   decodeQR,
+  parseImportString,
 };
