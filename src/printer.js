@@ -50,15 +50,21 @@ function listNameAndAlias(list) {
   );
 }
 
-// TODO: Masking and raw secret displaying.
 function details(secret, mask) {
-  console.log(
-    columnify(secret, {
-      dataTransform: (value, col) => {
-        return col.name === 'secret' && mask ? '*'.repeat(value.length) : value;
-      },
-    }),
-  );
+  const convert = (buffer) => {
+    let result = [];
+    for (const val of buffer.values()) {
+      result.push(val);
+    }
+    return `[${result.join(', ')}]`;
+  };
+
+  const displayable = {
+    ...secret,
+    secret: mask ? '<masked>' : convert(secret.secret),
+  };
+
+  console.log(columnify(displayable));
 }
 
 function verboseSQLiteLogger(string) {
