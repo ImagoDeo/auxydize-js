@@ -2,11 +2,11 @@
 // I don't know what problems I have created by doing it
 // this way, but it works.
 //
-// RFC4648, as you can see from line 8 below. Padding optional for encoding.
+// RFC4648, as you can see from line 7 below. Padding optional for encoding.
+
+const lib = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 function encode(bytes, pad = true) {
-  const lib = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
   let bits = '';
 
   for (const uint8 of bytes) {
@@ -35,9 +35,7 @@ function encode(bytes, pad = true) {
 }
 
 function decode(string) {
-  const lib = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-
-  const str = string.replace(/=/g, '');
+  const str = string.replace(/=/g, '').toUpperCase();
   let bits = '';
 
   for (const char of str) {
