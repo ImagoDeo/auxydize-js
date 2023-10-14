@@ -112,6 +112,12 @@ async function main() {
             requiresArg: true,
             demandOption: true,
           })
+          .option('issuer', {
+            alias: 'r',
+            describe: 'the secret issuer',
+            type: 'string',
+            requiresArg: true,
+          })
           .option('alias', {
             alias: 'a',
             describe: 'an alias to reference the secret more easily',
@@ -168,6 +174,7 @@ async function main() {
           .group(
             [
               'name',
+              'issuer',
               'alias',
               'secret',
               'algorithm',

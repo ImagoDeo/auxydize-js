@@ -114,6 +114,7 @@ function cmdSet(options) {
   const rawBytes = options.secret.split(' ').map((pair) => Number('0x' + pair));
   const secret = {
     name: options.name,
+    issuer: options.issuer,
     alias: options.alias,
     algorithm: options.algorithm || 'sha1',
     digits: Number(options.digits) || 6,

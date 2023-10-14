@@ -1,5 +1,6 @@
 CREATE TABLE secrets (
   name TEXT PRIMARY KEY UNIQUE NOT NULL,
+  issuer TEXT,
   alias TEXT UNIQUE,
   algorithm TEXT NOT NULL DEFAULT 'sha1',
   digits INTEGER NOT NULL DEFAULT 6,

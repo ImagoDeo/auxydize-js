@@ -60,10 +60,11 @@ function decryptDB() {
 
 function insertSecret(secret) {
   const insertSecret = secretsdb.prepare(
-    'INSERT INTO secrets ( name, alias, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO secrets ( name, issuer, alias, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
   );
   insertSecret.run(
     secret.name,
+    secret.issuer,
     secret.alias,
     secret.algorithm,
     secret.digits,
