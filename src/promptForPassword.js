@@ -98,4 +98,4 @@ function prompt(ask, options = {}) {
   );
 }
 
-module.exports = prompt;
+module.exports = { prompt };
