@@ -50,6 +50,7 @@ function listNameAndAlias(list) {
   );
 }
 
+// TODO: Masking and raw secret displaying.
 function details(secret, mask) {
   console.log(
     columnify(secret, {

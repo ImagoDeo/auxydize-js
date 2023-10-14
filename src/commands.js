@@ -12,7 +12,7 @@ const {
   getAllSecretNamesAndAliases,
 } = require('./db');
 const { generateTOTP } = require('./generator');
-const { parseImportString, decodeQR } = require('./import');
+const { parseGoogleMigrationString, decodeQR } = require('./import');
 const { arrayify, expandHome } = require('./utils');
 const {
   success,

@@ -243,6 +243,7 @@ async function main() {
       cmdDecrypt,
     )
     .command(
+      // TODO: Rework. New import types.
       'import',
       'imports secrets from image files containing QR codes or from Google Authenticator migration strings',
       (yargs) => {
