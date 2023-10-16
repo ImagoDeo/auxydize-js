@@ -2,10 +2,12 @@
 
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
-const { connectAndAccessDBMiddleware } = require('../src/db');
-const { gracefulShutdown } = require('../src/utils');
+const { connectAndAccessDBMiddleware, cleanup } = require('../src/db');
 
-process.on('SIGINT', gracefulShutdown);
+process.on('SIGINT', () => {
+  console.log('\nClosing any open DB connections and shutting down.');
+  cleanup();
+});
 
 (async () => {
   await yargs(hideBin(process.argv))

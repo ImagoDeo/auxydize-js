@@ -6,7 +6,7 @@
 'use strict';
 
 const ansi = require('ansi-escapes');
-const { gracefulShutdown } = require('./utils');
+const { cleanup } = require('./db');
 const stdin = process.stdin;
 const stderr = process.stderr;
 
@@ -38,7 +38,8 @@ const hide = (ask, options = {}) => {
 
     function ctrlc() {
       stop();
-      gracefulShutdown();
+      console.log('\nClosing any open DB connections and shutting down.');
+      cleanup();
     }
 
     function backspace() {

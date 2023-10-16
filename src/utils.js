@@ -12,11 +12,6 @@ function expandHome(filePaths) {
   });
 }
 
-function gracefulShutdown() {
-  console.log('\nClosing any open DB connections and shutting down.');
-  cleanup();
-}
-
 function noArraysExcept(exclusions = []) {
   return (argv) => {
     const defaultExclusions = ['_', '$0'];
@@ -33,4 +28,4 @@ function noArraysExcept(exclusions = []) {
   };
 }
 
-module.exports = { arrayify, expandHome, gracefulShutdown, noArraysExcept };
+module.exports = { arrayify, expandHome, noArraysExcept };
