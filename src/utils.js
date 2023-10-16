@@ -1,5 +1,3 @@
-const { cleanup } = require('./db');
-
 function arrayify(optionValue) {
   if (optionValue === undefined) return [];
   return Array.isArray(optionValue) ? optionValue : [optionValue];

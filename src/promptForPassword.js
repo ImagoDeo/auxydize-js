@@ -6,7 +6,6 @@
 'use strict';
 
 const ansi = require('ansi-escapes');
-const { cleanup } = require('./db');
 const stdin = process.stdin;
 const stderr = process.stderr;
 
@@ -38,8 +37,7 @@ const hide = (ask, options = {}) => {
 
     function ctrlc() {
       stop();
-      console.log('\nClosing any open DB connections and shutting down.');
-      cleanup();
+      process.emit('SIGINT');
     }
 
     function backspace() {
