@@ -3,11 +3,41 @@ const fs = require('fs');
 const path = require('path');
 const { success, verboseSQLiteLogger } = require('./printer');
 const { getDBPath } = require('./dbPath');
+const chalk = require('chalk');
+const { prompt } = require('./promptForPassword');
 
 const dbpath = getDBPath();
 const schemaPath = path.join(__dirname, 'resources/schema.sql');
 
 let secretsdb;
+
+async function connectAndAccessDBMiddleware(argv) {
+  if (
+    argv.help ||
+    argv._.includes('help') ||
+    argv.version ||
+    argv._.includes('version')
+  ) {
+    return argv;
+  }
+
+  const init = connectDB(argv.verbose);
+  if (!init) {
+    createAndConnectDB(argv.verbose);
+  }
+
+  if (isDBEncrypted()) {
+    do {
+      const password = await prompt(
+        chalk.yellow('STATUS: ') +
+          'Secrets database is encrypted. Please enter the password: ',
+      );
+      accessDB(password);
+    } while (isDBEncrypted());
+  }
+
+  return argv;
+}
 
 function connectDB(verbose) {
   const init = fs.existsSync(dbpath);
@@ -127,6 +157,7 @@ function getAllSecrets() {
 }
 
 module.exports = {
+  connectAndAccessDBMiddleware,
   connectDB,
   createAndConnectDB,
   cleanup,
