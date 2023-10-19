@@ -7,10 +7,9 @@
 const lib = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 function encode(bytes, pad = true) {
-  let bits = '';
-  for (const uint8 of bytes) {
-    bits += uint8.toString(2).padStart(8, '0');
-  }
+  let bits = [...bytes.values()]
+    .map((v) => v.toString(2).padStart(8, '0'))
+    .join('');
   if (bits.length % 5) bits += '0'.repeat(5 - (bits.length % 5));
   let str = '';
   for (let c = 5; c <= bits.length; c += 5) {
@@ -22,10 +21,9 @@ function encode(bytes, pad = true) {
 
 function decode(string) {
   const str = string.replace(/=/g, '').toUpperCase();
-  let bits = '';
-  for (const char of str) {
-    bits += lib.indexOf(char).toString(2).padStart(5, '0');
-  }
+  let bits = Array.prototype.map
+    .call(str, (c) => lib.indexOf(c).toString(2).padStart(5, '0'))
+    .join('');
   if (bits.length % 8) bits = bits.slice(0, -(bits.length % 8));
   let buffer = Buffer.alloc(bits.length / 8);
   for (let c = 8; c <= bits.length; c += 8) {
