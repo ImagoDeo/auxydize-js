@@ -14,7 +14,7 @@
     "prepare": "husky install"
   },
   "author": "kieffer.joshua.k@gmail.com",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "ansi-escapes": "^4.3.2",
     "better-sqlite3-multiple-ciphers": "^8.7.0",
@@ -28,11 +28,13 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "eslint": "^8.51.0",
     "husky": "^8.0.3",
     "lint-staged": "^14.0.1",
     "prettier": "^3.0.3"
   },
   "lint-staged": {
+    "*.{js}": "eslint --cache --fix",
     "*.{js,css,md}": "prettier --write"
   }
 }

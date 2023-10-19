@@ -10,8 +10,5 @@ TODO:
   - export command
 - Unit tests
   - Not exhaustive. Lean.
-- Verbose for verbose outputs
 - Add confirmation step for decrypting the database
 - Add confirmation step for removing a secret
-- Refactor: use commands directory functionality for Yargs
-- Refactor: add issuer field in db
