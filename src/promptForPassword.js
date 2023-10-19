@@ -6,10 +6,10 @@
 'use strict';
 
 const ansi = require('ansi-escapes');
-const stdin = process.stdin;
-const stderr = process.stderr;
 
-const hide = (ask, options = {}) => {
+const { stdin, stderr } = process;
+
+const getInput = (ask) => {
   // masking isn't available without setRawMode
   if (!stdin.setRawMode || process.env.TERM === 'dumb') return notty(ask);
   return new Promise((resolve, reject) => {
@@ -28,10 +28,8 @@ const hide = (ask, options = {}) => {
     }
 
     function enter() {
-      if (options.required && input.length === 0) return;
       stop();
       input = input.replace(/\r$/, '');
-      input = input || options.default;
       resolve(input);
     }
 
@@ -42,7 +40,7 @@ const hide = (ask, options = {}) => {
 
     function backspace() {
       if (input.length === 0) return;
-      input = input.substr(0, input.length - 1);
+      input = input.slice(0, input.length - 1);
       stderr.write(ansi.cursorBackward(1));
       stderr.write(ansi.eraseEndLine);
     }
@@ -84,17 +82,10 @@ const notty = (ask) => {
   });
 };
 
-function prompt(ask, options = {}) {
+function prompt(ask) {
   stdin.setEncoding('utf8');
-  options = {
-    required: options.default === undefined,
-    default: '',
-    ...options,
-  };
 
-  return hide(ask, options).then(
-    (input) => input.trim() || (options.required ? prompt(ask) : ''),
-  );
+  return getInput(ask).then((input) => input.trim() || prompt(ask));
 }
 
 module.exports = { prompt };
