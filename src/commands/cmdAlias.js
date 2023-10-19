@@ -1,11 +1,19 @@
 const { noArraysExcept } = require('../utils');
 const { insertAlias } = require('../db');
-const { success } = require('../printer');
+const printer = require('../printer');
 
 function cmdAlias(options) {
-  const { name, alias } = options;
+  const { name, alias, v } = options;
+  if (v)
+    console.log(
+      printer.verbose(
+        `Attempting to insert alias '${alias}' for secret '${name}'`,
+      ),
+    );
   insertAlias(name, alias);
-  success(`Inserted alias '${alias}' for secret '${name}'`);
+  console.log(
+    printer.success(`Inserted alias '${alias}' for secret '${name}'`),
+  );
 }
 
 module.exports = {

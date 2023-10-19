@@ -1,67 +1,118 @@
 const Database = require('better-sqlite3-multiple-ciphers');
 const fs = require('fs');
 const path = require('path');
-const { success, verboseSQLiteLogger } = require('./printer');
+const printer = require('./printer');
 const { getDBPath } = require('./dbPath');
 const chalk = require('chalk');
 const { prompt } = require('./promptForPassword');
 
 const dbpath = getDBPath();
 const schemaPath = path.join(__dirname, 'resources/schema.sql');
+const verboseLogger = (str) => console.log(printer.sqlLog(str));
 
 let secretsdb;
 
-async function connectAndAccessDBMiddleware(argv) {
-  if (
-    argv.help ||
-    argv._.includes('help') ||
-    argv.version ||
-    argv._.includes('version')
-  ) {
-    return argv;
+async function connectAndAccessDBMiddleware(options) {
+  const { help, version, _, verbose } = options;
+  if (verbose)
+    console.log(
+      printer.verbose(
+        'Determining whether database connection is necessary for this command.',
+      ),
+    );
+
+  if (help || _.includes('help') || version || _.includes('version')) {
+    if (verbose)
+      console.log(
+        printer.verbose(
+          'Command is help or version; skipping database connection process.',
+        ),
+      );
+    return options;
   }
 
-  const init = connectDB(argv.verbose);
+  if (verbose)
+    console.log(
+      printer.verbose(
+        'Command requires database connection. Attempting connection.',
+      ),
+    );
+  const init = connectDB(verbose);
   if (!init) {
-    createAndConnectDB(argv.verbose);
+    if (verbose)
+      console.log(
+        printer.verbose(
+          'Database not initialized. Initializing and connecting.',
+        ),
+      );
+    createAndConnectDB(verbose);
   }
+  if (verbose) console.log(printer.verbose('Database connected.'));
 
-  if (isDBEncrypted()) {
+  if (isDBEncrypted(verbose)) {
+    console.log(printer.error('Secrets database is encrypted.'));
+    let success = false;
     do {
       const password = await prompt(
-        chalk.yellow('STATUS: ') +
-          'Secrets database is encrypted. Please enter the password: ',
+        printer.error('Please enter the database password: '),
       );
+      if (verbose)
+        console.log(
+          printer.verbose('Password received. Attempting database access.'),
+        );
       accessDB(password);
-    } while (isDBEncrypted());
+      success = isDBEncrypted(verbose);
+      if (!success) console.log(printer.error('Incorrect password.'));
+    } while (!success);
   }
 
-  return argv;
+  if (verbose) console.log(printer.verbose('Database access verified.'));
+  return options;
 }
 
 function connectDB(verbose) {
+  if (verbose)
+    console.log(printer.verbose('Checking to see if the database file exists'));
   const init = fs.existsSync(dbpath);
-  if (init)
+  if (init) {
+    if (verbose)
+      console.log(printer.verbose('Database file exists. Connecting.'));
     secretsdb = new Database(dbpath, {
-      verbose: verbose ? verboseSQLiteLogger : null,
+      verbose: verbose ? verboseLogger : null,
     });
+  } else if (verbose) {
+    console.log(printer.verbose('Database file does not exist.'));
+  }
   return init;
 }
 
 function createAndConnectDB(verbose) {
+  if (verbose) console.log(printer.verbose('Creating new database file.'));
   secretsdb = new Database(dbpath, { verbose: verbose ? verboseLogger : null });
 
+  if (verbose) console.log(printer.verbose('Preparing database schema.'));
   const create = secretsdb.prepare(fs.readFileSync(schemaPath, 'utf8'));
 
+  if (verbose) console.log(printer.verbose('Executing database schema.'));
   create.run();
 }
 
-function cleanup() {
+function cleanup(verbose) {
+  if (verbose)
+    console.log(
+      printer.status(
+        'Closing any open database connections and shutting down.',
+      ),
+    );
   if (!secretsdb) return;
   secretsdb.close();
 }
 
-function isDBEncrypted() {
+function isDBEncrypted(verbose) {
+  if (verbose)
+    console.log(
+      printer.verbose('Checking to see whether the database is encrypted.'),
+    );
   let result = false;
 
   try {
@@ -74,18 +125,17 @@ function isDBEncrypted() {
 }
 
 function accessDB(password) {
-  const result = secretsdb.pragma(`key='${password}'`, { simple: true });
-  if (result === 'ok') success('DB access granted.');
+  secretsdb.pragma(`key='${password}'`, { simple: true });
 }
 
 function encryptDB(password) {
   const result = secretsdb.pragma(`rekey='${password}'`, { simple: true });
-  if (result === 'ok') success('DB encrypted.');
+  return result === 'ok';
 }
 
 function decryptDB() {
   const result = secretsdb.pragma(`rekey=''`, { simple: true });
-  if (result === 'ok') success('DB decrypted.');
+  return result === 'ok';
 }
 
 function insertSecret(secret) {
@@ -103,7 +153,6 @@ function insertSecret(secret) {
     secret.secret,
     secret.notes,
   );
-  success(`${secret.name} successfully inserted.`);
 }
 
 function insertAlias(name, alias) {
@@ -118,6 +167,13 @@ function deleteSecretByName(name) {
     'DELETE FROM secrets WHERE name = ?',
   );
   deleteSecretByName.run(name);
+}
+
+function deleteSecretByAlias(alias) {
+  const deleteSecretByAlias = secretsdb.prepare(
+    'DELETE FROM secrets WHERE alias = ?',
+  );
+  deleteSecretByAlias.run(alias);
 }
 
 function getSecretByName(name) {
@@ -168,6 +224,7 @@ module.exports = {
   insertSecret,
   insertAlias,
   deleteSecretByName,
+  deleteSecretByAlias,
   getSecretByName,
   getSecretByAlias,
   getAllSecretNames,

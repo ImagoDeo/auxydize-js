@@ -5,12 +5,11 @@ const { hideBin } = require('yargs/helpers');
 const { connectAndAccessDBMiddleware, cleanup } = require('../src/db');
 
 process.on('SIGINT', () => {
-  console.log('\nClosing any open DB connections and shutting down.');
-  cleanup();
+  cleanup(true);
 });
 
 (async () => {
-  await yargs(hideBin(process.argv))
+  const argv = await yargs(hideBin(process.argv))
     .commandDir('../src/commands')
     .demandCommand(
       1,
@@ -20,10 +19,12 @@ process.on('SIGINT', () => {
     )
     .option('verbose', {
       alias: 'v',
-      describe: 'verbose logging - mainly affects DB queries',
+      describe: 'makes auxydize tell you what it is doing in extreme detail',
       type: 'boolean',
     })
     .help()
     .updateStrings({ 'Options:': 'Global options:' })
     .middleware(connectAndAccessDBMiddleware).argv;
+
+  cleanup(argv.verbose);
 })();

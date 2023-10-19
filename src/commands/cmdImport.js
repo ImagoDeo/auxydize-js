@@ -5,35 +5,94 @@ const {
   parseImportString,
 } = require('../import');
 const { insertSecret } = require('../db');
-const { status } = require('../printer');
+const printer = require('../printer');
 
 async function cmdImport(options) {
-  const { string, file, json } = options;
+  const { string, file, json, verbose } = options;
 
+  if (verbose)
+    console.log(printer.verbose('Arrayifying string, file, and json'));
   let strings = arrayify(string);
   let files = arrayify(file);
   let jsons = arrayify(json);
 
+  if (verbose)
+    console.log(
+      printer.verbose('Expanding home variables for possible filepaths'),
+    );
   files = expandHome(files);
   jsons = expandHome(jsons);
 
+  if (verbose)
+    console.log(printer.verbose('Processing json files/raw strings'));
   for (const json of jsons) {
+    if (verbose)
+      console.log(printer.verbose(`Attempting to parse file or raw: ${json}`));
     try {
       const secret = parseFreeOTPPlusBackupJSON(json);
+      if (verbose)
+        console.log(printer.verbose(`Parsing successful, inserting...`));
       insertSecret(secret);
+      console.log(printer.success(`${secret.name} successfully inserted.`));
     } catch (error) {
-      status(error.message);
+      console.log(
+        printer.error(
+          'Encountered an error while parsing json: ' + error.message,
+        ),
+      );
     }
   }
 
+  if (verbose) console.log(printer.verbose('Processing QR code filepaths'));
   for (const file of files) {
-    const migrationString = await decodeQR(file);
-    strings.push(migrationString);
+    if (verbose)
+      console.log(
+        printer.verbose(`Attempting to read and decode filepath: ${file}`),
+      );
+    try {
+      const migrationString = await decodeQR(file);
+      if (verbose)
+        console.log(
+          printer.verbose(
+            `Successfully decoded and added to queue: ${migrationString}`,
+          ),
+        );
+      strings.push(migrationString);
+    } catch (error) {
+      console.log(
+        printer.error(
+          'Encountered an error while decoding filepath: ' + error.message,
+        ),
+      );
+    }
   }
 
+  if (verbose) console.log(printer.verbose('Processing otp URIs'));
   for (const string of strings) {
-    for (const secret of parseImportString(string)) {
-      insertSecret(secret);
+    if (verbose) console.log(printer.verbose(`Processing: ${string}`));
+    try {
+      for (const secret of parseImportString(string)) {
+        if (verbose)
+          console.log(
+            printer.verbose(`Attempting to insert secret ${secret.name}`),
+          );
+        try {
+          insertSecret(secret);
+          console.log(printer.success(`${secret.name} successfully inserted.`));
+        } catch (error) {
+          console.log(
+            printer.error(
+              'Encountered an error while inserting secret: ' + error.message,
+            ),
+          );
+        }
+      }
+    } catch (error) {
+      console.log(
+        printer.error(
+          'Encountered an error while processing string: ' + error.message,
+        ),
+      );
     }
   }
 }

@@ -1,60 +1,68 @@
 const chalk = require('chalk');
 const columnify = require('columnify');
 
+function prefix(string) {
+  return chalk.bgGrey.whiteBright('[aux]' + string);
+}
+
 function success(string) {
-  console.log(chalk.green('SUCCESS: ') + string);
+  return prefix(chalk.green('# ') + string);
 }
 
 function status(string) {
-  console.log(chalk.yellow('STATUS: ') + string);
+  return prefix(chalk.yellow('# ') + string);
+}
+
+function error(string) {
+  return prefix(chalk.red('# ') + string);
+}
+
+function verbose(string) {
+  return prefix(chalk.dim.gray('# ') + string);
 }
 
 function totpList(list) {
-  console.log(
-    columnify(
-      list.map(({ name, totp, validFor = null, index = 0 }) => {
-        const indexString =
-          index < 0
-            ? `previous ${index}`
-            : index > 0
-            ? `next +${index}`
-            : 'current';
-        const validForString = validFor ? `${validFor}s` : undefined;
-        return {
-          name: chalk.bold(name),
-          code: chalk.yellowBright(totp),
-          lifetime: chalk.greenBright(validForString),
-          index: chalk.dim(indexString),
-        };
-      }),
-      {
-        columns: ['code', 'name', 'lifetime', 'index'],
-        config: {
-          index: {
-            showHeaders: false,
-          },
+  return columnify(
+    list.map(({ name, totp, validFor = null, index = 0 }) => {
+      const indexString =
+        index < 0
+          ? `previous ${index}`
+          : index > 0
+          ? `next +${index}`
+          : 'current';
+      const validForString = validFor ? `${validFor}s` : undefined;
+      return {
+        name: chalk.bold(name),
+        code: chalk.yellowBright(totp),
+        lifetime: chalk.greenBright(validForString),
+        index: chalk.dim(indexString),
+      };
+    }),
+    {
+      columns: ['code', 'name', 'lifetime', 'index'],
+      config: {
+        index: {
+          showHeaders: false,
         },
-        headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
       },
-    ),
+      headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
+    },
   );
 }
 
 function listNameAndAlias(list) {
-  console.log(
-    columnify(list, {
-      columns: ['name', 'alias'],
-      columnSplitter: ' : ',
-      headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
-    }),
-  );
+  return columnify(list, {
+    columns: ['name', 'alias'],
+    columnSplitter: ' : ',
+    headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
+  });
 }
 
 function details(secret, mask) {
   const convert = (buffer) => {
     let result = [];
     for (const val of buffer.values()) {
-      result.push(val);
+      result.push(val.toString(16).padStart(2, '0'));
     }
     return `[${result.join(', ')}]`;
   };
@@ -64,18 +72,20 @@ function details(secret, mask) {
     secret: mask ? '<masked>' : convert(secret.secret),
   };
 
-  console.log(columnify(displayable));
+  return columnify(displayable);
 }
 
-function verboseSQLiteLogger(string) {
-  console.log(chalk.bold().cyanBright('SQLITE: ') + string);
+function sqlLog(string) {
+  return prefix(chalk.bold().cyanBright('SQLITE: ') + string);
 }
 
 module.exports = {
   success,
   status,
+  error,
+  verbose,
   totpList,
   listNameAndAlias,
   details,
-  verboseSQLiteLogger,
+  sqlLog,
 };

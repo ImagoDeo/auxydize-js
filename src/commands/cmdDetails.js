@@ -1,13 +1,19 @@
 const { noArraysExcept } = require('../utils');
 const { getSecretByName, getSecretByAlias } = require('../db');
-const { details } = require('../printer');
+const printer = require('../printer');
 
 function cmdDetails(options) {
-  const { name, alias, mask } = options;
+  const { name, alias, mask, verbose } = options;
   if (name) {
-    details(getSecretByName(name), mask);
+    if (verbose)
+      console.log(printer.verbose(`Fetching secret by name: ${name}`));
+    const secret = getSecretByName(name);
+    console.log(printer.details(secret, mask));
   } else if (alias) {
-    details(getSecretByAlias(alias), mask);
+    if (verbose)
+      console.log(printer.verbose(`Fetching secret by alias: ${alias}`));
+    const secret = getSecretByAlias(alias);
+    console.log(printer.details(secret, mask));
   }
 }
 

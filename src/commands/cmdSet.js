@@ -1,21 +1,39 @@
 const { arrayify, noArraysExcept } = require('../utils');
 const { insertSecret } = require('../db');
+const printer = require('../printer');
 
 function cmdSet(options) {
+  const {
+    name,
+    issuer,
+    alias,
+    algorithm,
+    digits,
+    interval,
+    tzero,
+    secret,
+    notes,
+    verbose,
+  } = options;
   // The actual bytes of the secret have to be entered as a space-separated set of hexadecimal pairs.
-  const rawBytes = options.secret.split(' ').map((pair) => Number('0x' + pair));
-  const secret = {
-    name: options.name,
-    issuer: options.issuer,
-    alias: options.alias,
-    algorithm: options.algorithm || 'sha1',
-    digits: Number(options.digits) || 6,
-    interval: Number(options.interval) || 30,
-    tzero: Number(options.tzero) || 0,
+  const rawBytes = secret.split(' ').map((pair) => Number('0x' + pair));
+  const secretObj = {
+    name: name,
+    issuer: issuer,
+    alias: alias,
+    algorithm: algorithm || 'sha1',
+    digits: Number(digits) || 6,
+    interval: Number(interval) || 30,
+    tzero: Number(tzero) || 0,
     secret: Buffer.from(rawBytes),
-    notes: arrayify(options.notes).join('\n'),
+    notes: arrayify(notes).join('\n'),
   };
-  insertSecret(secret);
+  if (verbose)
+    console.log(
+      printer.verbose(`Attempting to insert secret ${secretObj.name}`),
+    );
+  insertSecret(secretObj);
+  console.log(printer.success(`${secretObj.name} successfully inserted.`));
 }
 
 module.exports = {

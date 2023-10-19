@@ -1,7 +1,16 @@
 const { decryptDB } = require('../db');
+const printer = require('../printer');
 
-function cmdDecrypt() {
-  decryptDB();
+function cmdDecrypt(options) {
+  const { verbose } = options;
+  if (verbose)
+    console.log(printer.verbose('Attempting to decrypt the database'));
+  const success = decryptDB();
+  if (success) {
+    console.log(printer.success('DB decrypted.'));
+  } else {
+    console.log(printer.error('DB decryption failed.'));
+  }
 }
 
 module.exports = {

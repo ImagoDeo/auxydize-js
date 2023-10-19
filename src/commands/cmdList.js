@@ -1,9 +1,13 @@
 const { getAllSecretNamesAndAliases } = require('../db');
-const { listNameAndAlias } = require('../printer');
+const printer = require('../printer');
 
-function cmdList() {
+function cmdList(options) {
+  const { verbose } = options;
+  if (verbose)
+    console.log(printer.verbose('Getting all secret names and aliases...'));
   const list = getAllSecretNamesAndAliases();
-  listNameAndAlias(list);
+  if (verbose) console.log(printer.verbose(`Found ${list.length} secrets.`));
+  console.log(printer.listNameAndAlias(list));
 }
 
 module.exports = {
