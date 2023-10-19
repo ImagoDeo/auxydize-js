@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const printer = require('./printer');
 const { getDBPath } = require('./dbPath');
-const chalk = require('chalk');
 const { prompt } = require('./promptForPassword');
 
 const dbpath = getDBPath();

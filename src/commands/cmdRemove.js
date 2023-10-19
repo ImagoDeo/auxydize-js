@@ -8,12 +8,12 @@ function cmdRemove(options) {
     if (verbose)
       console.log(printer.verbose(`Deleting secret by name: ${name}`));
     const secret = deleteSecretByName(name);
-    console.log(printer.status(`Deleted secret with name: ${name}`));
+    console.log(printer.status(`Deleted secret with name: ${secret.name}`));
   } else if (alias) {
     if (verbose)
       console.log(printer.verbose(`Deleting secret by alias: ${alias}`));
     const secret = deleteSecretByAlias(alias);
-    console.log(printer.status(`Deleted secret with alias: ${alias}`));
+    console.log(printer.status(`Deleted secret with alias: ${secret.alias}`));
   }
 }
 

@@ -59,20 +59,22 @@ function cmdGet(options) {
   } else {
     if (verbose)
       console.log(printer.verbose('At least one name or alias specified.'));
-    totpList(
-      [...names.map(getSecretByName), ...aliases.map(getSecretByAlias)].map(
-        (secret) => {
-          if (verbose)
-            console.log(
-              printer.verbose(`Generating TOTP for '${secret.name}'`),
-            );
-          const { totp, validFor } = generateTOTP(secret);
-          return {
-            name: secret.name,
-            totp,
-            validFor,
-          };
-        },
+    console.log(
+      printer.totpList(
+        [...names.map(getSecretByName), ...aliases.map(getSecretByAlias)].map(
+          (secret) => {
+            if (verbose)
+              console.log(
+                printer.verbose(`Generating TOTP for '${secret.name}'`),
+              );
+            const { totp, validFor } = generateTOTP(secret);
+            return {
+              name: secret.name,
+              totp,
+              validFor,
+            };
+          },
+        ),
       ),
     );
   }

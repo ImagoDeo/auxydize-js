@@ -12,7 +12,7 @@ const { stdin, stderr } = process;
 const getInput = (ask) => {
   // masking isn't available without setRawMode
   if (!stdin.setRawMode || process.env.TERM === 'dumb') return notty(ask);
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     let input = '';
     stderr.write(ansi.eraseLine);
     stderr.write(ansi.cursorLeft);
