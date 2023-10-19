@@ -7,7 +7,7 @@ const {
   getSecretByName,
   getSecretByAlias,
 } = require('../db');
-const { totpList, status } = require('../printer');
+const printer = require('../printer');
 
 function cmdGet(options) {
   const { name, alias, partial, verbose } = options;

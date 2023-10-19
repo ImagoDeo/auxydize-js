@@ -2,7 +2,7 @@ const chalk = require('chalk');
 const columnify = require('columnify');
 
 function prefix(string) {
-  return chalk.bgGrey.whiteBright('[aux]' + string);
+  return chalk.bgGrey.whiteBright('[aux]') + string;
 }
 
 function success(string) {
@@ -76,7 +76,7 @@ function details(secret, mask) {
 }
 
 function sqlLog(string) {
-  return prefix(chalk.bold().cyanBright('SQLITE: ') + string);
+  return prefix(chalk.bold.cyanBright('# ') + 'SQLITE: ' + string);
 }
 
 module.exports = {

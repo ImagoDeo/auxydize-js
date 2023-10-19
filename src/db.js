@@ -100,7 +100,7 @@ function createAndConnectDB(verbose) {
 function cleanup(verbose) {
   if (verbose)
     console.log(
-      printer.status(
+      printer.verbose(
         'Closing any open database connections and shutting down.',
       ),
     );
@@ -118,6 +118,7 @@ function isDBEncrypted(verbose) {
   try {
     secretsdb.exec(`SELECT name FROM sqlite_master WHERE type='table';`);
   } catch (error) {
+    if (verbose) console.log(printer.verbose('Error: ' + error.message));
     result = true;
   }
 
