@@ -104,26 +104,23 @@ module.exports = {
   builder: (yargs) => {
     return yargs
       .option('string', {
-        alias: 's',
         describe: 'a URI containing one or more secrets',
         type: 'string',
         requiresArg: true,
       })
       .option('file', {
-        alias: 'f',
         describe: 'a filepath to an image containing one or more secrets',
         type: 'string',
         requiresArg: true,
       })
       .option('json', {
-        alias: 'j',
         describe:
           'stringified JSON or a filepath to a JSON file containing FreeOTP+ exported secrets',
         type: 'string',
         requiresArg: true,
       })
-      .group(['string', 'file'], 'IMPORT options:')
-      .check(noArraysExcept(['string', 's', 'file', 'f', 'json', 'j']), false)
+      .group(['string', 'file', 'json'], 'IMPORT options:')
+      .check(noArraysExcept(['string', 'file', 'json']), false)
       .check(
         (argv) =>
           argv.string?.length ||

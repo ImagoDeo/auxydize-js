@@ -139,13 +139,11 @@ module.exports = {
   builder: (yargs) => {
     return yargs
       .option('name', {
-        alias: 'n',
         describe: 'the name of a secret from which to generate a TOTP',
         type: 'string',
         requiresArg: true,
       })
       .option('alias', {
-        alias: 'a',
         describe: 'the alias of a secret from which to generate a TOTP',
         type: 'string',
         requiresArg: true,
@@ -156,7 +154,7 @@ module.exports = {
           'return TOTPs for partial matches on secret names and aliases',
         type: 'boolean',
       })
-      .check(noArraysExcept(['name', 'n', 'alias', 'a']), false)
+      .check(noArraysExcept(['name', 'alias']), false)
       .group(['name', 'alias', 'partial'], 'GET options:');
   },
   handler: cmdGet,

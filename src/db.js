@@ -60,7 +60,7 @@ async function connectAndAccessDBMiddleware(options) {
           printer.verbose('Password received. Attempting database access.'),
         );
       accessDB(password);
-      success = isDBEncrypted(verbose);
+      success = !isDBEncrypted(verbose);
       if (!success) console.log(printer.error('Incorrect password.'));
     } while (!success);
   }
@@ -142,7 +142,7 @@ function insertSecret(secret) {
   const insertSecret = secretsdb.prepare(
     'INSERT INTO secrets ( name, issuer, alias, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
   );
-  insertSecret.run(
+  const { changes } = insertSecret.run(
     secret.name,
     secret.issuer,
     secret.alias,
@@ -153,27 +153,31 @@ function insertSecret(secret) {
     secret.secret,
     secret.notes,
   );
+  return changes > 0;
 }
 
 function insertAlias(name, alias) {
   const insertAlias = secretsdb.prepare(
     'UPDATE secrets SET alias = ? WHERE name = ?',
   );
-  insertAlias.run(alias, name);
+  const { changes } = insertAlias.run(alias, name);
+  return changes > 0;
 }
 
 function deleteSecretByName(name) {
   const deleteSecretByName = secretsdb.prepare(
     'DELETE FROM secrets WHERE name = ?',
   );
-  deleteSecretByName.run(name);
+  const { changes } = deleteSecretByName.run(name);
+  return changes > 0;
 }
 
 function deleteSecretByAlias(alias) {
   const deleteSecretByAlias = secretsdb.prepare(
     'DELETE FROM secrets WHERE alias = ?',
   );
-  deleteSecretByAlias.run(alias);
+  const { changes } = deleteSecretByAlias.run(alias);
+  return changes > 0;
 }
 
 function getSecretByName(name) {

@@ -58,7 +58,7 @@ function listNameAndAlias(list) {
   });
 }
 
-function details(secret, mask) {
+function details(secret, unmask) {
   const convert = (buffer) => {
     let result = [];
     for (const val of buffer.values()) {
@@ -69,7 +69,7 @@ function details(secret, mask) {
 
   const displayable = {
     ...secret,
-    secret: mask ? '<masked>' : convert(secret.secret),
+    secret: unmask ? convert(secret.secret) : '<masked>',
   };
 
   return columnify(displayable);

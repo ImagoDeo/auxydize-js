@@ -3,40 +3,41 @@ const { insertAlias } = require('../db');
 const printer = require('../printer');
 
 function cmdAlias(options) {
-  const { name, alias, v } = options;
-  if (v)
+  const { name, alias, verbose } = options;
+  if (verbose)
     console.log(
       printer.verbose(
         `Attempting to insert alias '${alias}' for secret '${name}'`,
       ),
     );
-  insertAlias(name, alias);
-  console.log(
-    printer.success(`Inserted alias '${alias}' for secret '${name}'`),
-  );
+  const success = insertAlias(name, alias);
+  if (success) {
+    console.log(
+      printer.success(`Inserted alias '${alias}' for secret '${name}'`),
+    );
+  } else {
+    console.log(printer.error(`No secret found with name ${name}`));
+  }
 }
 
 module.exports = {
-  command: ['alias', 'nickname'],
+  command: ['alias <name> <alias>', 'nickname'],
   describe: 'adds an alias to a secret',
   builder: (yargs) => {
     return yargs
-      .option('name', {
-        alias: 'n',
+      .positional('name', {
         describe: 'name of the secret to alias',
         type: 'string',
         requiresArg: true,
         demandOption: true,
       })
-      .option('alias', {
-        alias: 'a',
+      .positional('alias', {
         describe: 'the alias to give to the named secret',
         type: 'string',
         requiresArg: true,
         demandOption: true,
       })
-      .check(noArraysExcept([]), false)
-      .group(['name', 'alias'], 'ALIAS options:');
+      .check(noArraysExcept([]), false);
   },
   handler: cmdAlias,
 };
