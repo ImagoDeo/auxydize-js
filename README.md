@@ -3,7 +3,6 @@
 TODO:
 
 - Readme
-- Add eslint + config
 - Some kind of bundling/compile for bin install?
 - Todos in files
   - edit command
