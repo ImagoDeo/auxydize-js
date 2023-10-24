@@ -1,137 +1,106 @@
-const { arrayify, noArraysExcept } = require('../utils');
-const { generateTOTP } = require('../generator');
-const {
-  getAllSecrets,
-  getAllSecretNames,
-  getAllSecretAliases,
-  getSecretByName,
-  getSecretByAlias,
-} = require('../db');
+const { noArraysExcept, expandHome } = require('../utils');
 const printer = require('../printer');
+const { fetchSecrets } = require('../fetcher');
+const {
+  toQRCode,
+  toOtpauthURI,
+  toGoogleMigrationStrings,
+} = require('../export');
+const fs = require('fs');
 
-// TODO: This was copied from cmdGet. Rewrite it for exporting.
 function cmdExport(options) {
   const { name, alias, partial, verbose } = options;
 
-  if (verbose) console.log(printer.verbose('Arrayifying names and aliases'));
-  let names = arrayify(name);
-  let aliases = arrayify(alias);
+  if (verbose) console.log(printer.verbose('Calling fetcher.'));
+  const secrets = fetchSecrets(name, alias, partial, verbose);
 
-  if (partial) {
-    if (verbose)
-      console.log(printer.verbose('Partial flag set; converting partials.'));
-    const { matchedNames, matchedAliases } = convertPartials(
-      names,
-      aliases,
-      verbose,
-    );
-    names = matchedNames;
-    aliases = matchedAliases;
-  }
+  const { google, uri, qrcode, filepath: rawFilepath } = options;
+  const filepath = expandHome(rawFilepath);
 
-  if (verbose)
-    console.log(printer.verbose('Retrieving secret(s) and printing.'));
-  if (!names.length && !aliases.length) {
+  let strings = [];
+
+  if (google) {
     if (verbose)
       console.log(
-        printer.verbose('No names or aliases specified; getting all secrets.'),
-      );
-    const secrets = getAllSecrets();
-
-    if (!secrets.length) {
-      console.log(printer.status('No secrets found.'));
-      return;
-    }
-
-    if (verbose)
-      console.log(printer.verbose('At least one secret found. Printing...'));
-    console.log(
-      printer.totpList(
-        secrets.map((secret) => {
-          const { totp, validFor } = generateTOTP(secret);
-          return {
-            name: secret.name,
-            totp,
-            validFor,
-          };
-        }),
-      ),
-    );
-  } else {
-    if (verbose)
-      console.log(printer.verbose('At least one name or alias specified.'));
-    console.log(
-      printer.totpList(
-        [...names.map(getSecretByName), ...aliases.map(getSecretByAlias)].map(
-          (secret) => {
-            if (verbose)
-              console.log(
-                printer.verbose(`Generating TOTP for '${secret.name}'`),
-              );
-            const { totp, validFor } = generateTOTP(secret);
-            return {
-              name: secret.name,
-              totp,
-              validFor,
-            };
-          },
+        printer.verbose(
+          'Google mode set, converting to otpauth-migration URI(s)',
         ),
+      );
+    strings = toGoogleMigrationStrings(secrets, verbose);
+  } else if (uri) {
+    if (verbose)
+      console.log(
+        printer.verbose('URI mode set, converting to default otpauth URI(s)'),
+      );
+    strings = secrets.map(toOtpauthURI(verbose));
+  }
+
+  if (qrcode) {
+    if (strings.length === 1) {
+      if (verbose)
+        console.log(
+          printer.verbose('Printing a single QR code to terminal or filepath'),
+        );
+      toQRCode(strings[0], filepath, verbose);
+    } else {
+      if (verbose)
+        console.log(
+          printer.verbose(
+            'Printing more than one QR code to terminal or filepath',
+          ),
+        );
+      strings.forEach((string, index, strings) =>
+        toQRCode(
+          string,
+          getPrefixedFilepath(filepath, index, strings.length, verbose),
+          verbose,
+        ),
+      );
+    }
+    return;
+  }
+
+  if (!filepath) {
+    if (verbose)
+      console.log(
+        printer.verbose(
+          'No filepath specified, qr mode not set - printing raw URIs',
+        ),
+      );
+    strings.forEach((string) => console.log(printer.success(string)));
+    return;
+  }
+
+  if (strings.length === 1) {
+    if (verbose) console.log(printer.verbose('Writing single URI to file'));
+    fs.writeFileSync(filepath, strings[0]);
+  } else {
+    if (verbose) console.log(printer.verbose('Writing URIs to multiple files'));
+    strings.forEach((string, index, strings) =>
+      fs.writeFileSync(
+        getPrefixedFilepath(filepath, index, strings.length, verbose),
+        string,
       ),
     );
   }
 }
 
-function convertPartials(partialNames, partialAliases, verbose) {
-  const getMatches = (all, param) => (prev, partial) => {
-    const matches = all.filter((e) => e.includes(partial));
-    if (!matches.length) {
+function getPrefixedFilepath(filepath, index, length, verbose) {
+  if (!filepath) {
+    if (verbose)
       console.log(
-        printer.status(`No matches found for partial ${param}: '${partial}'`),
+        printer.verbose('No filepath specified, returning undefined'),
       );
-    } else {
-      if (verbose)
-        console.log(
-          printer.verbose(
-            `${
-              matches.length
-            } matches found for partial ${param}: '${partial}': ${JSON.stringify(
-              matches,
-            )}`,
-          ),
-        );
-      prev.push(...matches);
-    }
-    return prev;
-  };
-
-  if (verbose) console.log(printer.verbose('Matching names...'));
-  const matchedNames = partialNames.reduce(
-    getMatches(getAllSecretNames(), 'name'),
-    [],
-  );
-
-  if (verbose) console.log(printer.verbose('Matching aliases...'));
-  const matchedAliases = partialAliases.reduce(
-    getMatches(
-      getAllSecretAliases().filter((alias) => alias !== null),
-      'alias',
-    ),
-    [],
-  );
-
-  if (verbose) {
-    console.log(
-      printer.verbose(`Matched names: ${JSON.stringify(matchedNames)}`),
-    );
-    console.log(
-      printer.verbose(`Matched aliases: ${JSON.stringify(matchedAliases)}`),
-    );
+    return;
   }
-
-  return {
-    matchedNames,
-    matchedAliases,
-  };
+  const [prefix, extension] = filepath.split('.');
+  if (verbose)
+    console.log(
+      printer.verbose(
+        `Using '${prefix}' as a prefix and '${extension}' as an extension`,
+      ),
+    );
+  return `${prefix}_aux_export_${index + 1}_of_${length}.${extension}`;
 }
 
 module.exports = {
@@ -152,11 +121,51 @@ module.exports = {
       .option('partial', {
         alias: 'p',
         describe:
-          'return TOTPs for partial matches on secret names and aliases',
+          'perform partial matching on the specified secret names and aliases',
         type: 'boolean',
       })
+      .option('google', {
+        alias: 'g',
+        describe:
+          'format as Google Authenticator multi-secret URI - printed to terminal as a string unless QR or filepath is specified',
+        type: 'boolean',
+      })
+      .option('uri', {
+        alias: 'u',
+        describe:
+          'format as a standard otpauth URI - printed to terminal as a string unless QR or filepath is specified',
+        type: 'boolean',
+      })
+      .option('qrcode', {
+        alias: 'q',
+        describe:
+          'export as a qr code - printed to terminal if no filepath is specified',
+        type: 'boolean',
+      })
+      .option('filepath', {
+        describe:
+          'file path to use for saving an exported object - if more than one object is exported, the file name will be used as a prefix and multiple files will be written to the directory instead',
+        type: 'string',
+        requiresArg: true,
+      })
       .check(noArraysExcept(['name', 'alias']), false)
-      .group(['name', 'alias', 'partial'], 'EXPORT options:');
+      .check(
+        (argv) => !!argv.name || !!argv.alias || 'No name or alias specified',
+        false,
+      )
+      .check(
+        (argv) => !!argv.google || !!argv.uri || 'No format specified',
+        false,
+      )
+      .group(['google', 'uri'], 'Formats:')
+      .group(
+        ['name', 'alias', 'partial', 'qrcode', 'filepath'],
+        'EXPORT options:',
+      )
+      .conflicts({
+        google: ['uri'],
+        uri: ['google'],
+      });
   },
   handler: cmdExport,
 };

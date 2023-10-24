@@ -1,43 +1,153 @@
-/* eslint-disable */
-
 const QRCode = require('qrcode');
+const printer = require('./printer');
+const base32 = require('./base32');
+const qs = require('qs');
+const path = require('path');
+const protobuf = require('protobufjs');
 
-function defaultFileName() {
-  return 'aux_export_';
+const protoPath = path.join(__dirname, 'resources/OtpMigration.proto');
+
+const root = protobuf.loadSync(protoPath).resolveAll();
+
+const migrationPayload = root.lookupType('MigrationPayload');
+// const algorithm = root.lookupEnum('Algorithm');
+// const digitCount = root.lookupEnum('DigitCount');
+// const otpType = root.lookupEnum('OtpType');
+
+function toQRCode(uri, filepath, verbose) {
+  if (filepath) {
+    QRCode.toFile(
+      filepath,
+      uri,
+      {
+        errorCorrectionLevel: 'L',
+      },
+      (error) => {
+        if (error) {
+          console.log(
+            printer.error(
+              'Encountered error while writing QR code to file: ' +
+                error.message,
+            ),
+          );
+        } else {
+          if (verbose)
+            console.log(
+              printer.verbose(`Successfully wrote QR code to ${filepath}`),
+            );
+        }
+      },
+    );
+  } else {
+    console.log(
+      QRCode.toString(
+        uri,
+        {
+          type: 'terminal',
+          errorCorrectionLevel: 'L',
+        },
+        (error) => {
+          if (error) {
+            console.log(
+              printer.error(
+                'Encountered error while writing QR code to terminal: ' +
+                  error.message,
+              ),
+            );
+          } else {
+            if (verbose)
+              console.log(
+                printer.verbose(`Successfully wrote QR code to terminal`),
+              );
+          }
+        },
+      ),
+    );
+  }
 }
 
-function toQRCode(string, options) {}
+function toOtpauthURI(verbose) {
+  return function (secret) {
+    const { name, issuer, secret: raw, algorithm, digits, interval } = secret;
 
-function toOtpauthURI(secret, options) {}
+    if (verbose)
+      console.log(
+        printer.verbose(`Converting secret '${name}' to otpauth URI`),
+      );
 
-function toGoogleMigrationStrings(secrets, options) {}
+    const queryParams = {
+      secret: base32.encode(raw, false),
+      issuer,
+      algorithm,
+      digits,
+      period: interval,
+    };
 
-/* eslint-enable */
+    return `otpauth://totp/${issuer}:${name}?${qs.stringify(queryParams)}`;
+  };
+}
 
-/*
- * Brainstorming
- *
- * What sort of options should I offer for export?
- * - Any number of names and aliases, or none for all.
- * - Fetch all the secrets.
- * - Output them individually as an otpauth uri QR or all together
- * as one (or several) Google-format QRs.
- *   - This can be in the terminal or as files.
- *   - Can specify one file path for one QR, but how
- *     to do multiple QRs?
- * - Output them as JSON with the FreeOTP+ format?
- * - Output them as raw migration strings?
- *
- * The file paths is the hard part.
- * And there are a ton of other export and import formats
- * I could try to support. It's probably not worth doing much
- * more beyond the options I'm currently considering.
- *
- * Even FreeOTP+ JSON is probably going further than I should
- * really bother with.
- *
- * Flags: partial makes sense.
- * Maybe -q for qr, -g for google, -j for json, -s for raw strings?
- * if -q or -g, either specify a file path or be prepared to get a giant QR in your terminal.
- * actually just all of those. --filepath works for a single secret, but --dirpath for a full export directory.
- */
+const CHUNK_SIZE = 10;
+
+const digitMap = {
+  6: 'SIX',
+  8: 'EIGHT',
+};
+
+// First draft. Needs testing.
+function toGoogleMigrationStrings(secrets, verbose) {
+  let strings = [];
+
+  for (let i = 0; i < secrets.length; i += CHUNK_SIZE) {
+    if (verbose)
+      console.log(
+        printer.verbose(
+          `Processing chunk ${(i + CHUNK_SIZE) / CHUNK_SIZE} of ${Math.ceil(
+            secrets.length / CHUNK_SIZE,
+          )}`,
+        ),
+      );
+    strings.push(
+      `otpauth-migration://offline?data=${encodeURIComponent(
+        migrationPayload
+          .encode({
+            version: 1,
+            batch_size: Math.ceil(secrets.length / CHUNK_SIZE),
+            batch_index: strings.length,
+            // No idea how Google generates a batch_id.
+            // I think I might just use my TOTP generator function for it.
+            batch_id: Math.max(
+              100000000,
+              Math.floor(Math.random() * 999999999),
+            ),
+            otpParameters: secrets.slice(i, i + CHUNK_SIZE).map((secret) => {
+              if (verbose)
+                console.log(
+                  printer.verbose(
+                    `Mapping secret '${secret.name}' to otpParameter`,
+                  ),
+                );
+              return {
+                secret: secret.secret,
+                name: `${secret.issuer}:${secret.name}`,
+                issuer: secret.issuer,
+                algorithm: secret.algorithm.toUpperCase(),
+                digits: digitMap[secret.digits],
+                type: 'TOTP',
+              };
+            }),
+          })
+          .finish()
+          .toString('base64'),
+      )}`,
+    );
+  }
+
+  return strings;
+}
+
+module.exports = {
+  toQRCode,
+  toOtpauthURI,
+  toGoogleMigrationStrings,
+};

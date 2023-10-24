@@ -3,11 +3,16 @@ function arrayify(optionValue) {
   return Array.isArray(optionValue) ? optionValue : [optionValue];
 }
 
-function expandHome(filePaths) {
-  return filePaths.map((str) => {
-    const replacement = str.replace(/^~/, process.env.HOME);
-    return replacement;
-  });
+function expandHome(filepaths) {
+  if (!filepaths) return;
+
+  function replacer(string) {
+    return string.replace(/^~/, process.env.HOME);
+  }
+
+  if (!Array.isArray(filepaths)) return replacer(filepaths);
+
+  return filepaths.map(replacer);
 }
 
 function noArraysExcept(exclusions = []) {

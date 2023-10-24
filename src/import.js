@@ -58,7 +58,6 @@ function parseGoogleMigrationString(migrationString) {
   return secrets;
 }
 
-// Currently unused.
 function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
   let parsed;
 
@@ -87,7 +86,6 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
   }));
 }
 
-// Currently unused.
 function parseOtpAuthUri(otpAuthUriString) {
   const decodedString = decodeURIComponent(otpAuthUriString);
   const regex = new RegExp(otpauthRegex);
