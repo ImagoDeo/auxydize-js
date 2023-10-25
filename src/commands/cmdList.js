@@ -1,17 +1,19 @@
-const { getAllSecretNamesAndAliases } = require('../db');
+const { getAllSecretIssuersNamesAndAliases } = require('../db');
 const printer = require('../printer');
 
 function cmdList(options) {
   const { verbose } = options;
   if (verbose)
-    console.log(printer.verbose('Getting all secret names and aliases...'));
-  const list = getAllSecretNamesAndAliases();
+    console.log(
+      printer.verbose('Getting all secret issuers, names, and aliases...'),
+    );
+  const list = getAllSecretIssuersNamesAndAliases();
   if (verbose) console.log(printer.verbose(`Found ${list.length} secrets.`));
-  console.log(printer.listNameAndAlias(list));
+  console.log(printer.listIssuerNameAndAlias(list));
 }
 
 module.exports = {
   command: ['list', 'ls'],
-  describe: 'lists all secrets and their aliases',
+  describe: 'lists all secrets by issuer and name, with their aliases',
   handler: cmdList,
 };

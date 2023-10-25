@@ -17,6 +17,7 @@ function cmdGet(options) {
           const { totp, validFor } = generateTOTP(secret);
           return {
             name: secret.name,
+            issuer: secret.issuer,
             totp,
             validFor,
           };

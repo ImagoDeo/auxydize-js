@@ -23,7 +23,7 @@ function verbose(string) {
 
 function totpList(list) {
   return columnify(
-    list.map(({ name, totp, validFor = null, index = 0 }) => {
+    list.map(({ name, issuer, totp, validFor = null, index = 0 }) => {
       const indexString =
         index < 0
           ? `previous ${index}`
@@ -32,14 +32,15 @@ function totpList(list) {
           : 'current';
       const validForString = validFor ? `${validFor}s` : undefined;
       return {
-        name: chalk.bold(name),
         code: chalk.yellowBright(totp),
+        issuer: chalk.bold(issuer),
+        name: chalk.bold(name),
         lifetime: chalk.greenBright(validForString),
         index: chalk.dim(indexString),
       };
     }),
     {
-      columns: ['code', 'name', 'lifetime', 'index'],
+      columns: ['code', 'issuer', 'name', 'lifetime', 'index'],
       config: {
         index: {
           showHeaders: false,
@@ -50,9 +51,9 @@ function totpList(list) {
   );
 }
 
-function listNameAndAlias(list) {
+function listIssuerNameAndAlias(list) {
   return columnify(list, {
-    columns: ['name', 'alias'],
+    columns: ['issuer', 'name', 'alias'],
     columnSplitter: ' : ',
     headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
   });
@@ -72,7 +73,15 @@ function details(secret, unmask) {
     secret: unmask ? convert(secret.secret) : '<masked>',
   };
 
-  return columnify(displayable);
+  delete displayable.notes;
+
+  return (
+    columnify(displayable, {
+      headingTransform: (heading) => chalk.underline(heading.toUpperCase()),
+    }) +
+    '\n\nNotes:\n' +
+    secret.notes
+  );
 }
 
 function sqlLog(string) {
@@ -85,7 +94,7 @@ module.exports = {
   error,
   verbose,
   totpList,
-  listNameAndAlias,
+  listIssuerNameAndAlias,
   details,
   sqlLog,
 };

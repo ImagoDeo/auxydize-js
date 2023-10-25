@@ -11,7 +11,7 @@ const protoPath = path.join(__dirname, 'resources/OtpMigration.proto');
 const root = protobuf.loadSync(protoPath).resolveAll();
 
 const migrationPayload = root.lookupType('MigrationPayload');
-const algorithm = root.lookupEnum('Algorithm');
+const algorithmEnum = root.lookupEnum('Algorithm');
 const digitCount = root.lookupEnum('DigitCount');
 // const otpType = root.lookupEnum('OtpType');
 
@@ -40,18 +40,32 @@ function parseGoogleMigrationString(migrationString) {
       EIGHT: 8,
     };
 
+    let { secret, issuer, name, algorithm, digits } = otpParameters;
+
+    let labelIssuer, labelName;
+    if (/:/.test(name)) [labelIssuer, labelName] = name.split(':');
+
+    let notes;
+    if (labelIssuer && issuer && labelIssuer !== issuer)
+      notes =
+        `AUTOMATED WARNING: This secret was imported with mismatched issuers in the label and issuer parameter.` +
+        `\nLabel: ${labelIssuer}` +
+        `\nParameter: ${issuer}` +
+        `\nThe parameter issuer is preferred and has been selected to fill in this secret's metadata.`;
+
+    const finalIssuer = issuer || labelIssuer || 'NO_ISSUER';
+    const finalName = labelName || name;
+
     secrets.push({
-      secret: otpParameters.secret,
-      issuer: otpParameters.issuer,
-      name: otpParameters.name,
-      algorithm:
-        algorithm.valuesById[String(otpParameters.algorithm)].toLowerCase(),
-      digits: digitMap[digitCount.valuesById[String(otpParameters.digits)]],
+      secret,
+      issuer: finalIssuer,
+      name: finalName,
+      alias: `${finalIssuer}:${finalName}`,
+      algorithm: algorithmEnum.valuesById[String(algorithm)].toLowerCase(),
+      digits: digitMap[digitCount.valuesById[String(digits)]],
       tzero: 0,
       interval: 30,
-      notes: otpParameters.issuer
-        ? `Issuer: ${otpParameters.issuer}`
-        : 'No issuer specified',
+      notes,
     });
   }
 
@@ -78,6 +92,7 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
     secret: Buffer.copyBytesFrom(new Int8Array(token.secret)),
     issuer: token.issuerExt,
     name: token.label,
+    alias: `${token.issuerExt}:${token.label}`,
     algorithm: token.algo.toLowerCase(),
     digits: token.digits,
     tzero: token.counter, // Not totally sure this is correct.
@@ -89,18 +104,34 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
 function parseOtpAuthUri(otpAuthUriString) {
   const decodedString = decodeURIComponent(otpAuthUriString);
   const regex = new RegExp(otpauthRegex);
-  const matches = regex.exec(decodedString).slice(1, 3);
-  const [issuer, label] = matches[0].split(':');
-  const params = qs.parse(matches[1]);
+  const [label, params] = regex.exec(decodedString).slice(1, 3);
+
+  const { secret, algorithm, digits, period, issuer } = qs.parse(params);
+
+  let labelIssuer, labelName;
+  if (/:/.test(label)) [labelIssuer, labelName] = label.split(':');
+
+  let notes;
+  if (labelIssuer && issuer && labelIssuer !== issuer)
+    notes =
+      `AUTOMATED WARNING: This secret was imported with mismatched issuers in the label and issuer parameter.` +
+      `\nLabel: ${labelIssuer}` +
+      `\nParameter: ${issuer}` +
+      `\nThe parameter issuer is preferred and has been selected to fill in this secret's metadata.`;
+
+  const finalIssuer = issuer || labelIssuer;
+  const finalName = labelName || label;
+
   return {
-    secret: Buffer.copyBytesFrom(base32.decode(params.secret)),
-    issuer,
-    name: label,
-    algorithm: params.algorithm,
-    digits: params.digits,
-    tzero: params.counter, // TODO: generate a test case to be sure
-    interval: params.period,
-    notes: `Issuer: ${issuer}`,
+    secret: Buffer.copyBytesFrom(base32.decode(secret)),
+    issuer: finalIssuer,
+    name: finalName,
+    alias: `${token.issuerExt}:${token.label}`,
+    algorithm: algorithm,
+    digits: digits,
+    tzero: 0,
+    interval: period,
+    notes,
   };
 }
 

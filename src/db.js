@@ -204,11 +204,11 @@ function getAllSecretAliases() {
   return getAllSecretAliases.all().map((row) => row.alias);
 }
 
-function getAllSecretNamesAndAliases() {
-  const getAllSecretNamesAndAliases = secretsdb.prepare(
-    'SELECT name, alias FROM secrets',
+function getAllSecretIssuersNamesAndAliases() {
+  const getAllSecretIssuersNamesAndAliases = secretsdb.prepare(
+    'SELECT issuer, name, alias FROM secrets',
   );
-  return getAllSecretNamesAndAliases.all();
+  return getAllSecretIssuersNamesAndAliases.all();
 }
 
 function getAllSecrets() {
@@ -233,6 +233,6 @@ module.exports = {
   getSecretByAlias,
   getAllSecretNames,
   getAllSecretAliases,
-  getAllSecretNamesAndAliases,
+  getAllSecretIssuersNamesAndAliases,
   getAllSecrets,
 };

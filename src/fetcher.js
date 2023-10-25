@@ -1,5 +1,5 @@
 const {
-  getAllSecretNamesAndAliases,
+  getAllSecretIssuersNamesAndAliases,
   getSecretByName,
   getSecretByAlias,
   getAllSecrets,
@@ -23,9 +23,11 @@ function fetchSecrets(name, alias, partial, verbose) {
 
     if (verbose)
       console.log(
-        printer.verbose('Fetching all valid secret names and aliases.'),
+        printer.verbose(
+          'Fetching all valid secret issuers, names, and aliases.',
+        ),
       );
-    const namesAndAliases = getAllSecretNamesAndAliases();
+    const namesAndAliases = getAllSecretIssuersNamesAndAliases();
     const validNames = namesAndAliases.map((row) => row.name);
     const validAliases = namesAndAliases
       .map((row) => row.alias)

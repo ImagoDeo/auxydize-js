@@ -1,11 +1,12 @@
 CREATE TABLE secrets (
-  name TEXT PRIMARY KEY UNIQUE NOT NULL,
-  issuer TEXT,
+  name TEXT NOT NULL,
+  issuer TEXT DEFAULT 'NO_ISSUER',
   alias TEXT UNIQUE,
-  algorithm TEXT NOT NULL DEFAULT 'sha1',
-  digits INTEGER NOT NULL DEFAULT 6,
-  interval INTEGER NOT NULL DEFAULT 30,
-  tzero INTEGER NOT NULL DEFAULT 0,
+  algorithm TEXT DEFAULT 'sha1',
+  digits INTEGER DEFAULT 6,
+  interval INTEGER DEFAULT 30,
+  tzero INTEGER DEFAULT 0,
   secret BLOB NOT NULL,
-  notes TEXT
+  notes TEXT,
+  PRIMARY KEY (name, issuer)
 );
