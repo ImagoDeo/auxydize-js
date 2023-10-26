@@ -8,7 +8,7 @@ const printer = require('./printer');
 
 function fetchSecrets(alias, partial, verbose) {
   let secrets = [];
-  if (!alias) {
+  if (!alias || !alias.length) {
     if (verbose)
       console.log(printer.verbose('No alias specified; fetching all secrets.'));
 

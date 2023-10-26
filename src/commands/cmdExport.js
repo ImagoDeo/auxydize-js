@@ -104,14 +104,14 @@ function getPrefixedFilepath(filepath, index, length, verbose) {
 }
 
 module.exports = {
-  command: ['export'],
+  command: ['export [alias..]'],
   describe: 'export secrets in a variety of formats',
   builder: (yargs) => {
     return yargs
-      .option('alias', {
-        describe: 'the alias of a secret to export',
+      .positional('alias', {
+        describe:
+          'the alias of a secret to export - if no alias is specified, all secrets are exported instead',
         type: 'string',
-        requiresArg: true,
       })
       .option('partial', {
         alias: 'p',
@@ -143,7 +143,6 @@ module.exports = {
         requiresArg: true,
       })
       .check(noArraysExcept(['alias']), false)
-      .check((argv) => !!argv.alias || 'No alias specified', false)
       .check(
         (argv) => !!argv.google || !!argv.uri || 'No format specified',
         false,
