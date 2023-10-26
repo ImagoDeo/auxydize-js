@@ -39,29 +39,28 @@ function toQRCode(uri, filepath, verbose) {
       },
     );
   } else {
-    console.log(
-      QRCode.toString(
-        uri,
-        {
-          type: 'terminal',
-          errorCorrectionLevel: 'L',
-        },
-        (error) => {
-          if (error) {
+    QRCode.toString(
+      uri,
+      {
+        type: 'terminal',
+        errorCorrectionLevel: 'L',
+      },
+      (error, string) => {
+        if (error) {
+          console.log(
+            printer.error(
+              'Encountered error while writing QR code to terminal: ' +
+                error.message,
+            ),
+          );
+        } else {
+          console.log(string);
+          if (verbose)
             console.log(
-              printer.error(
-                'Encountered error while writing QR code to terminal: ' +
-                  error.message,
-              ),
+              printer.verbose(`Successfully wrote QR code to terminal`),
             );
-          } else {
-            if (verbose)
-              console.log(
-                printer.verbose(`Successfully wrote QR code to terminal`),
-              );
-          }
-        },
-      ),
+        }
+      },
     );
   }
 }

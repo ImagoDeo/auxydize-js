@@ -51,9 +51,11 @@ module.exports = {
         describe: 'the secret issuer',
         type: 'string',
         requiresArg: true,
+        demandOption: true,
       })
       .option('alias', {
-        describe: 'an alias to reference the secret more easily',
+        describe:
+          'an alias to reference the secret more easily - defaults to ISSUER:NAME',
         type: 'string',
         requiresArg: true,
       })
@@ -108,7 +110,20 @@ module.exports = {
           'notes',
         ],
         'SET options:',
-      );
+      )
+      .middleware((argv) => {
+        const { name, issuer, alias, verbose } = argv;
+        if (verbose) console.log(printer.verbose('Checking for alias.'));
+        if (!alias) {
+          argv.alias = `${issuer}:${name}`;
+          if (verbose)
+            console.log(
+              printer.verbose(
+                `No alias found; inserting default alias '${argv.alias}'`,
+              ),
+            );
+        }
+      });
   },
   handler: cmdSet,
 };

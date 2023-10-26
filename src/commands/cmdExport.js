@@ -9,10 +9,10 @@ const {
 const fs = require('fs');
 
 function cmdExport(options) {
-  const { name, alias, partial, verbose } = options;
+  const { alias, partial, verbose } = options;
 
   if (verbose) console.log(printer.verbose('Calling fetcher.'));
-  const secrets = fetchSecrets(name, alias, partial, verbose);
+  const secrets = fetchSecrets(alias, partial, verbose);
 
   const { google, uri, qrcode, filepath: rawFilepath } = options;
   const filepath = expandHome(rawFilepath);
@@ -108,11 +108,6 @@ module.exports = {
   describe: 'export secrets in a variety of formats',
   builder: (yargs) => {
     return yargs
-      .option('name', {
-        describe: 'the name of a secret to export',
-        type: 'string',
-        requiresArg: true,
-      })
       .option('alias', {
         describe: 'the alias of a secret to export',
         type: 'string',
@@ -120,8 +115,7 @@ module.exports = {
       })
       .option('partial', {
         alias: 'p',
-        describe:
-          'perform partial matching on the specified secret names and aliases',
+        describe: 'perform partial matching on the specified secret aliases',
         type: 'boolean',
       })
       .option('google', {
@@ -148,20 +142,14 @@ module.exports = {
         type: 'string',
         requiresArg: true,
       })
-      .check(noArraysExcept(['name', 'alias']), false)
-      .check(
-        (argv) => !!argv.name || !!argv.alias || 'No name or alias specified',
-        false,
-      )
+      .check(noArraysExcept(['alias']), false)
+      .check((argv) => !!argv.alias || 'No alias specified', false)
       .check(
         (argv) => !!argv.google || !!argv.uri || 'No format specified',
         false,
       )
       .group(['google', 'uri'], 'Formats:')
-      .group(
-        ['name', 'alias', 'partial', 'qrcode', 'filepath'],
-        'EXPORT options:',
-      )
+      .group(['alias', 'partial', 'qrcode', 'filepath'], 'EXPORT options:')
       .conflicts({
         google: ['uri'],
         uri: ['google'],

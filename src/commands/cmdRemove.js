@@ -1,52 +1,31 @@
 const { noArraysExcept } = require('../utils');
-const { deleteSecretByName, deleteSecretByAlias } = require('../db');
+const { deleteSecretByAlias } = require('../db');
 const printer = require('../printer');
 
 function cmdRemove(options) {
-  const { name, alias, verbose } = options;
-  if (name) {
-    if (verbose)
-      console.log(printer.verbose(`Deleting secret by name: ${name}`));
-    const success = deleteSecretByName(name);
-    if (success) {
-      console.log(printer.status(`Deleted secret with name: ${name}`));
-    } else {
-      console.log(printer.error(`No secret found with name: ${name}`));
-    }
-  } else if (alias) {
-    if (verbose)
-      console.log(printer.verbose(`Deleting secret by alias: ${alias}`));
-    const success = deleteSecretByAlias(alias);
-    if (success) {
-      console.log(printer.status(`Deleted secret with alias: ${alias}`));
-    } else {
-      console.log(printer.error(`No secret found with alias: ${alias}`));
-    }
+  const { alias, verbose } = options;
+  if (verbose)
+    console.log(printer.verbose(`Deleting secret by alias: ${alias}`));
+  const success = deleteSecretByAlias(alias);
+  if (success) {
+    console.log(printer.status(`Deleted secret with alias: ${alias}`));
+  } else {
+    console.log(printer.error(`No secret found with alias: ${alias}`));
   }
 }
 
 module.exports = {
-  command: ['remove', 'delete', 'rm'],
+  command: ['remove <alias>', 'delete', 'rm'],
   describe: 'removes a secret from the database',
   builder: (yargs) => {
     return yargs
-      .option('name', {
-        describe: 'name of the secret to remove',
-        type: 'string',
-        requiresArg: true,
-      })
-      .option('alias', {
+      .positional('alias', {
         describe: 'alias of the secret to remove',
         type: 'string',
-        requiresArg: true,
+        demandOption: true,
       })
-      .conflicts('name', 'alias')
       .check(noArraysExcept([]), false)
-      .check(
-        (argv) => !!argv.name || !!argv.alias || 'No name or alias specified',
-        false,
-      )
-      .group(['name', 'alias', 'mask'], 'REMOVE options:');
+      .group(['alias'], 'REMOVE options:');
   },
   handler: cmdRemove,
 };

@@ -156,35 +156,16 @@ function insertSecret(secret) {
   return changes > 0;
 }
 
-function insertAlias(name, alias) {
-  const insertAlias = secretsdb.prepare(
-    'UPDATE secrets SET alias = ? WHERE name = ?',
+function updateSecret(alias, options) {
+  const updateSecret = secretsdb.prepare(
+    `UPDATE secrets SET (${Object.keys(options).join(', ')}) = (${Object.keys(
+      options,
+    )
+      .map((_) => '?')
+      .join(', ')}) WHERE alias = ?`,
   );
-  const { changes } = insertAlias.run(alias, name);
+  const { changes } = updateSecret.run(...Object.values(options), alias);
   return changes > 0;
-}
-
-function deleteSecretByName(name) {
-  const deleteSecretByName = secretsdb.prepare(
-    'DELETE FROM secrets WHERE name = ?',
-  );
-  const { changes } = deleteSecretByName.run(name);
-  return changes > 0;
-}
-
-function deleteSecretByAlias(alias) {
-  const deleteSecretByAlias = secretsdb.prepare(
-    'DELETE FROM secrets WHERE alias = ?',
-  );
-  const { changes } = deleteSecretByAlias.run(alias);
-  return changes > 0;
-}
-
-function getSecretByName(name) {
-  const getSecretByName = secretsdb.prepare(
-    'SELECT * FROM secrets WHERE name = ?',
-  );
-  return getSecretByName.get(name);
 }
 
 function getSecretByAlias(alias) {
@@ -194,9 +175,12 @@ function getSecretByAlias(alias) {
   return getSecretByAlias.get(alias);
 }
 
-function getAllSecretNames() {
-  const getAllSecretNames = secretsdb.prepare('SELECT name FROM secrets');
-  return getAllSecretNames.all().map((row) => row.name);
+function deleteSecretByAlias(alias) {
+  const deleteSecretByAlias = secretsdb.prepare(
+    'DELETE FROM secrets WHERE alias = ?',
+  );
+  const { changes } = deleteSecretByAlias.run(alias);
+  return changes > 0;
 }
 
 function getAllSecretAliases() {
@@ -226,12 +210,9 @@ module.exports = {
   encryptDB,
   decryptDB,
   insertSecret,
-  insertAlias,
-  deleteSecretByName,
-  deleteSecretByAlias,
-  getSecretByName,
+  updateSecret,
   getSecretByAlias,
-  getAllSecretNames,
+  deleteSecretByAlias,
   getAllSecretAliases,
   getAllSecretIssuersNamesAndAliases,
   getAllSecrets,

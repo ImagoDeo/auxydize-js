@@ -4,10 +4,10 @@ const printer = require('../printer');
 const { fetchSecrets } = require('../fetcher');
 
 function cmdGet(options) {
-  const { name, alias, partial, verbose } = options;
+  const { alias, partial, verbose } = options;
 
   if (verbose) console.log(printer.verbose('Calling fetcher.'));
-  const secrets = fetchSecrets(name, alias, partial, verbose);
+  const secrets = fetchSecrets(alias, partial, verbose);
 
   if (secrets.length) {
     if (verbose) console.log(printer.verbose('Generating TOTPs.'));
@@ -32,11 +32,6 @@ module.exports = {
   describe: 'generate TOTPs',
   builder: (yargs) => {
     return yargs
-      .option('name', {
-        describe: 'the name of a secret from which to generate a TOTP',
-        type: 'string',
-        requiresArg: true,
-      })
       .option('alias', {
         describe: 'the alias of a secret from which to generate a TOTP',
         type: 'string',
@@ -44,12 +39,11 @@ module.exports = {
       })
       .option('partial', {
         alias: 'p',
-        describe:
-          'perform partial matching on the specified secret names and aliases',
+        describe: 'perform partial matching on the specified secret aliases',
         type: 'boolean',
       })
-      .check(noArraysExcept(['name', 'alias']), false)
-      .group(['name', 'alias', 'partial'], 'GET options:');
+      .check(noArraysExcept(['alias']), false)
+      .group(['alias', 'partial'], 'GET options:');
   },
   handler: cmdGet,
 };
