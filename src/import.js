@@ -53,8 +53,8 @@ function parseGoogleMigrationString(migrationString) {
         `\nParameter: ${issuer}` +
         `\nThe parameter issuer is preferred and has been selected to fill in this secret's metadata.`;
 
-    const finalIssuer = issuer || labelIssuer || 'NO_ISSUER';
-    const finalName = labelName || name;
+    const finalIssuer = (issuer || labelIssuer || 'NO_ISSUER').trim();
+    const finalName = (labelName || name).trim();
 
     secrets.push({
       secret,
@@ -90,9 +90,9 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
 
   return parsed.tokens.map((token) => ({
     secret: Buffer.copyBytesFrom(new Int8Array(token.secret)),
-    issuer: token.issuerExt,
-    name: token.label,
-    alias: `${token.issuerExt}:${token.label}`,
+    issuer: token.issuerExt.trim(),
+    name: token.label.trim(),
+    alias: `${token.issuerExt.trim()}:${token.label.trim()}`,
     algorithm: token.algo.toLowerCase(),
     digits: token.digits,
     tzero: token.counter, // Not totally sure this is correct.
@@ -119,14 +119,14 @@ function parseOtpAuthUri(otpAuthUriString) {
       `\nParameter: ${issuer}` +
       `\nThe parameter issuer is preferred and has been selected to fill in this secret's metadata.`;
 
-  const finalIssuer = issuer || labelIssuer;
-  const finalName = labelName || label;
+  const finalIssuer = (issuer || labelIssuer).trim();
+  const finalName = (labelName || label).trim();
 
   return {
     secret: Buffer.copyBytesFrom(base32.decode(secret)),
     issuer: finalIssuer,
     name: finalName,
-    alias: `${token.issuerExt}:${token.label}`,
+    alias: `${finalIssuer}:${finalName}`,
     algorithm: algorithm,
     digits: digits,
     tzero: 0,
