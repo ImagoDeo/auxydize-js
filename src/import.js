@@ -95,7 +95,7 @@ function parseFreeOTPPlusBackupJSON(filePathOrRawJSON) {
     alias: `${token.issuerExt.trim()}:${token.label.trim()}`,
     algorithm: token.algo.toLowerCase(),
     digits: token.digits,
-    tzero: token.counter, // Not totally sure this is correct.
+    tzero: 0,
     interval: token.period,
     notes: `Issuer: ${token.issuerExt}`,
   }));
