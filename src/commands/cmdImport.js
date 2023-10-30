@@ -33,7 +33,7 @@ async function cmdImport(options) {
       if (verbose)
         console.log(printer.verbose(`Parsing successful, inserting...`));
       insertSecret(secret);
-      console.log(printer.success(`${secret.name} successfully inserted.`));
+      console.log(printer.success(`${secret.alias} successfully imported.`));
     } catch (error) {
       console.log(
         printer.error(
@@ -78,7 +78,9 @@ async function cmdImport(options) {
           );
         try {
           insertSecret(secret);
-          console.log(printer.success(`${secret.name} successfully inserted.`));
+          console.log(
+            printer.success(`${secret.alias} successfully imported.`),
+          );
         } catch (error) {
           console.log(
             printer.error(

@@ -1,20 +1,25 @@
 {
   "name": "auxydize",
-  "version": "0.1.1",
-  "description": "AuxydizeJS is a JS prototype of Auxydize, a Rust Time-Based One-Time Password generator for the command line.",
-  "repository": "https://github.com/ImagoDeo/auxydize-js",
-  "bugs": "https://github.com/ImagoDeo/auxydize-js/issues",
+  "version": "0.4.1",
+  "description": "AuxydizeJS is a JS prototype of Auxydize, a Time-Based One-Time Password generator for the command line.",
+  "keywords": ["totp", "authenticator", "cli"],
   "homepage": "https://github.com/ImagoDeo/auxydize-js",
+  "bugs": "https://github.com/ImagoDeo/auxydize-js/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Joshua Kieffer",
+    "email": "kieffer.joshua.k@gmail.com",
+    "url": "http://joshua-kieffer.com"
+  },
   "main": "bin/index.js",
   "bin": {
     "aux": "./bin/index.js"
   },
+  "repository": "https://github.com/ImagoDeo/auxydize-js",
   "scripts": {
     "test": "jest",
     "prepare": "husky install"
   },
-  "author": "kieffer.joshua.k@gmail.com",
-  "license": "MIT",
   "dependencies": {
     "ansi-escapes": "^4.3.2",
     "better-sqlite3-multiple-ciphers": "^8.7.0",
@@ -33,6 +38,9 @@
     "husky": "^8.0.3",
     "lint-staged": "^14.0.1",
     "prettier": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=20.8.0"
   },
   "lint-staged": {
     "*.js": "eslint --cache --fix",

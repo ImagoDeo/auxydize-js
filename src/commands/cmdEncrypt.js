@@ -5,7 +5,7 @@ const printer = require('../printer');
 async function cmdEncrypt(options) {
   const { verbose } = options;
 
-  console.log(printer.status('ENCRYPTS THIS COMMAND YOUR SECRETS DATABASE.'));
+  console.log(printer.status('THIS COMMAND ENCRYPTS YOUR SECRETS DATABASE.'));
   console.log(
     printer.status(
       'IF YOU LOSE THE PASSWORD, THIS CANNOT BE UNDONE AND YOU WILL LOSE ALL SECRETS.',

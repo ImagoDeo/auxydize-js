@@ -20,7 +20,7 @@ function cmdSet(options) {
   const secretObj = {
     name: name,
     issuer: issuer,
-    alias: alias,
+    alias: alias || `${issuer}:${name}`,
     algorithm: algorithm || 'sha1',
     digits: Number(digits) || 6,
     interval: Number(interval) || 30,
@@ -33,7 +33,7 @@ function cmdSet(options) {
       printer.verbose(`Attempting to insert secret ${secretObj.name}`),
     );
   insertSecret(secretObj);
-  console.log(printer.success(`${secretObj.name} successfully inserted.`));
+  console.log(printer.success(`${secretObj.alias} successfully inserted.`));
 }
 
 module.exports = {
