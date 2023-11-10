@@ -7,6 +7,8 @@ function expandHome(filepaths) {
   if (!filepaths) return;
 
   function replacer(string) {
+    if (/^~/.test(string) && !process.env.HOME)
+      throw new Error(`$HOME undefined - cannot expand ${string}`);
     return string.replace(/^~/, process.env.HOME);
   }
 

@@ -9,6 +9,13 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
   },
+  overrides: [
+    {
+      files: ['**/*.test.js'],
+      plugins: ['jest'],
+      extends: ['plugin:jest/recommended'],
+    },
+  ],
   rules: {
     'no-unused-vars': ['error', { args: 'all', argsIgnorePattern: '^_' }],
   },
