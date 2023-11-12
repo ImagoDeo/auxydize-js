@@ -10,7 +10,7 @@ process.on('SIGINT', () => {
 
 (async () => {
   const argv = await yargs(hideBin(process.argv))
-    .commandDir('../src/commands')
+    .commandDir('../src/commands', { exclude: /test.js/ })
     .demandCommand(
       1,
       1,
