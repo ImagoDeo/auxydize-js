@@ -2,6 +2,8 @@
 
 **Auxydize allows you to store, manage, and use your Time-Based One-Time Password secrets on the command line.**
 
+For SEO: This is basically Google Authenticator as a CLI.
+
 <pre><font color="#55FF55"><b>➜  </b></font><font color="#55FFFF"><b>~</b></font> aux get
 <u style="text-decoration-style:single">CODE</u>   <u style="text-decoration-style:single">ISSUER</u> <u style="text-decoration-style:single">NAME</u>                    <u style="text-decoration-style:single">LIFETIME</u>        
 <font color="#FFFF55">123062</font> <b>Reddit</b> <b>testy@email-service.com</b> <font color="#55FF55">8s</font>       current
