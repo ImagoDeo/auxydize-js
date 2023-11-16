@@ -12,7 +12,7 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  consoleLogSpy.mockReset();
+  jest.resetAllMocks();
 });
 
 afterAll(() => {
@@ -34,7 +34,9 @@ describe('cmdDecrypt', () => {
 
       handler({ verbose: false });
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(printer.success('DB decrypted.'));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        printer.success('DB decrypted.'),
+      );
     });
   });
 
