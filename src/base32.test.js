@@ -37,10 +37,11 @@ const TEST_CASES = [
 ];
 
 describe('base32', () => {
-  it('should encode and decode RFC 4648 test vectors successfully', () => {
-    for (const TEST_CASE of TEST_CASES) {
-      expect(encode(Buffer.from(TEST_CASE[0]))).toEqual(TEST_CASE[1]);
-      expect(decode(TEST_CASE[1]).toString('utf8')).toEqual(TEST_CASE[0]);
-    }
-  });
+  it.each(TEST_CASES)(
+    'should encode %s to %s and decode it back again',
+    (value, result) => {
+      expect(encode(Buffer.from(value))).toEqual(result);
+      expect(decode(result).toString('utf8')).toEqual(value);
+    },
+  );
 });
