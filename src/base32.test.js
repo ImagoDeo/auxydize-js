@@ -1,3 +1,29 @@
+/*
+RFC 4648                    Base-N Encodings                October 2006
+Josefsson                   Standards Track                [Pages 11-12]
+
+10.  Test Vectors
+
+   ...
+
+   BASE32("") = ""
+
+   BASE32("f") = "MY======"
+
+   BASE32("fo") = "MZXQ===="
+
+   BASE32("foo") = "MZXW6==="
+
+   BASE32("foob") = "MZXW6YQ="
+
+   BASE32("fooba") = "MZXW6YTB"
+
+   BASE32("foobar") = "MZXW6YTBOI======"
+
+   ...
+
+*/
+
 const { encode, decode } = require('./base32');
 
 const TEST_CASES = [
