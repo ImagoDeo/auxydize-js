@@ -2,40 +2,6 @@ const { arrayify, noArraysExcept } = require('../utils');
 const { insertSecret } = require('../db');
 const printer = require('../printer');
 
-function cmdSet(options) {
-  const {
-    name,
-    issuer,
-    alias,
-    algorithm,
-    digits,
-    interval,
-    tzero,
-    secret,
-    notes,
-    verbose,
-  } = options;
-  // The actual bytes of the secret have to be entered as a space-separated set of hexadecimal pairs.
-  const rawBytes = secret.split(' ').map((pair) => Number('0x' + pair));
-  const secretObj = {
-    name: name,
-    issuer: issuer,
-    alias: alias || `${issuer}:${name}`,
-    algorithm: algorithm || 'sha1',
-    digits: Number(digits) || 6,
-    interval: Number(interval) || 30,
-    tzero: Number(tzero) || 0,
-    secret: Buffer.from(rawBytes),
-    notes: arrayify(notes).join('\n'),
-  };
-  if (verbose)
-    console.log(
-      printer.verbose(`Attempting to insert secret ${secretObj.name}`),
-    );
-  insertSecret(secretObj);
-  console.log(printer.success(`${secretObj.alias} successfully inserted.`));
-}
-
 module.exports = {
   command: ['set', 'add'],
   describe: 'add a secret with metadata',
@@ -125,5 +91,37 @@ module.exports = {
         }
       });
   },
-  handler: cmdSet,
+  handler: (options) => {
+    const {
+      name,
+      issuer,
+      alias,
+      algorithm,
+      digits,
+      interval,
+      tzero,
+      secret,
+      notes,
+      verbose,
+    } = options;
+    // The actual bytes of the secret have to be entered as a space-separated set of hexadecimal pairs.
+    const rawBytes = secret.split(' ').map((pair) => Number('0x' + pair));
+    const secretObj = {
+      name: name,
+      issuer: issuer,
+      alias: alias || `${issuer}:${name}`,
+      algorithm: algorithm || 'sha1',
+      digits: Number(digits) || 6,
+      interval: Number(interval) || 30,
+      tzero: Number(tzero) || 0,
+      secret: Buffer.from(rawBytes),
+      notes: arrayify(notes).join('\n'),
+    };
+    if (verbose)
+      console.log(
+        printer.verbose(`Attempting to insert secret ${secretObj.name}`),
+      );
+    insertSecret(secretObj);
+    console.log(printer.success(`${secretObj.alias} successfully inserted.`));
+  },
 };

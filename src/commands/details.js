@@ -2,14 +2,6 @@ const { noArraysExcept } = require('../utils');
 const { getSecretByAlias } = require('../db');
 const printer = require('../printer');
 
-function cmdDetails(options) {
-  const { alias, unmask, verbose } = options;
-  if (verbose)
-    console.log(printer.verbose(`Fetching secret by alias: ${alias}`));
-  const secret = getSecretByAlias(alias);
-  console.log(printer.details(secret, unmask));
-}
-
 module.exports = {
   command: ['details <alias>', 'show'],
   describe: 'shows the details of a specific secret',
@@ -29,5 +21,11 @@ module.exports = {
       .check((argv) => !!argv.alias || 'No alias specified', false)
       .group(['alias', 'unmask'], 'DETAILS options:');
   },
-  handler: cmdDetails,
+  handler: (options) => {
+    const { alias, unmask, verbose } = options;
+    if (verbose)
+      console.log(printer.verbose(`Fetching secret by alias: ${alias}`));
+    const secret = getSecretByAlias(alias);
+    console.log(printer.details(secret, unmask));
+  },
 };

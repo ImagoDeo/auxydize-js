@@ -8,83 +8,6 @@ const {
 } = require('../export');
 const fs = require('fs');
 
-function cmdExport(options) {
-  const { alias, partial, verbose } = options;
-
-  if (verbose) console.log(printer.verbose('Calling fetcher.'));
-  const secrets = fetchSecrets(alias, partial, verbose);
-
-  const { google, uri, qrcode, filepath: rawFilepath } = options;
-  const filepath = expandHome(rawFilepath);
-
-  let strings = [];
-
-  if (google) {
-    if (verbose)
-      console.log(
-        printer.verbose(
-          'Google mode set, converting to otpauth-migration URI(s)',
-        ),
-      );
-    strings = toGoogleMigrationStrings(secrets, verbose);
-  } else if (uri) {
-    if (verbose)
-      console.log(
-        printer.verbose('URI mode set, converting to default otpauth URI(s)'),
-      );
-    strings = secrets.map(toOtpauthURI(verbose));
-  }
-
-  if (qrcode) {
-    if (strings.length === 1) {
-      if (verbose)
-        console.log(
-          printer.verbose('Printing a single QR code to terminal or filepath'),
-        );
-      toQRCode(strings[0], filepath, verbose);
-    } else {
-      if (verbose)
-        console.log(
-          printer.verbose(
-            'Printing more than one QR code to terminal or filepath',
-          ),
-        );
-      strings.forEach((string, index, strings) =>
-        toQRCode(
-          string,
-          getPrefixedFilepath(filepath, index, strings.length, verbose),
-          verbose,
-        ),
-      );
-    }
-    return;
-  }
-
-  if (!filepath) {
-    if (verbose)
-      console.log(
-        printer.verbose(
-          'No filepath specified, qr mode not set - printing raw URIs',
-        ),
-      );
-    strings.forEach((string) => console.log(printer.success(string)));
-    return;
-  }
-
-  if (strings.length === 1) {
-    if (verbose) console.log(printer.verbose('Writing single URI to file'));
-    fs.writeFileSync(filepath, strings[0]);
-  } else {
-    if (verbose) console.log(printer.verbose('Writing URIs to multiple files'));
-    strings.forEach((string, index, strings) =>
-      fs.writeFileSync(
-        getPrefixedFilepath(filepath, index, strings.length, verbose),
-        string,
-      ),
-    );
-  }
-}
-
 function getPrefixedFilepath(filepath, index, length, verbose) {
   if (!filepath) {
     if (verbose)
@@ -154,5 +77,83 @@ module.exports = {
         uri: ['google'],
       });
   },
-  handler: cmdExport,
+  handler: (options) => {
+    const { alias, partial, verbose } = options;
+
+    if (verbose) console.log(printer.verbose('Calling fetcher.'));
+    const secrets = fetchSecrets(alias, partial, verbose);
+
+    const { google, uri, qrcode, filepath: rawFilepath } = options;
+    const filepath = expandHome(rawFilepath);
+
+    let strings = [];
+
+    if (google) {
+      if (verbose)
+        console.log(
+          printer.verbose(
+            'Google mode set, converting to otpauth-migration URI(s)',
+          ),
+        );
+      strings = toGoogleMigrationStrings(secrets, verbose);
+    } else if (uri) {
+      if (verbose)
+        console.log(
+          printer.verbose('URI mode set, converting to default otpauth URI(s)'),
+        );
+      strings = secrets.map(toOtpauthURI(verbose));
+    }
+
+    if (qrcode) {
+      if (strings.length === 1) {
+        if (verbose)
+          console.log(
+            printer.verbose(
+              'Printing a single QR code to terminal or filepath',
+            ),
+          );
+        toQRCode(strings[0], filepath, verbose);
+      } else {
+        if (verbose)
+          console.log(
+            printer.verbose(
+              'Printing more than one QR code to terminal or filepath',
+            ),
+          );
+        strings.forEach((string, index, strings) =>
+          toQRCode(
+            string,
+            getPrefixedFilepath(filepath, index, strings.length, verbose),
+            verbose,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!filepath) {
+      if (verbose)
+        console.log(
+          printer.verbose(
+            'No filepath specified, qr mode not set - printing raw URIs',
+          ),
+        );
+      strings.forEach((string) => console.log(printer.success(string)));
+      return;
+    }
+
+    if (strings.length === 1) {
+      if (verbose) console.log(printer.verbose('Writing single URI to file'));
+      fs.writeFileSync(filepath, strings[0]);
+    } else {
+      if (verbose)
+        console.log(printer.verbose('Writing URIs to multiple files'));
+      strings.forEach((string, index, strings) =>
+        fs.writeFileSync(
+          getPrefixedFilepath(filepath, index, strings.length, verbose),
+          string,
+        ),
+      );
+    }
+  },
 };

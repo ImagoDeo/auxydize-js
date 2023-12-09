@@ -2,36 +2,6 @@ const { noArraysExcept, arrayify } = require('../utils');
 const { updateSecret } = require('../db');
 const printer = require('../printer');
 
-function cmdEdit(options) {
-  const alias = options.alias;
-  const verbose = options.verbose;
-
-  delete options._;
-  delete options.$0;
-  delete options.alias;
-  delete options.verbose;
-
-  if (options.newalias) {
-    options.alias = options.newalias;
-    delete options.newalias;
-  }
-
-  if (options.notes) options.notes = arrayify(options.notes).join('\n');
-  if (options.secret)
-    options.secret = Buffer.from(
-      options.secret.split(' ').map((pair) => Number('0x' + pair)),
-    );
-
-  if (verbose)
-    console.log(printer.verbose(`Attempting to update secret '${alias}'`));
-  const success = updateSecret(alias, options);
-  if (success) {
-    console.log(printer.success(`Updated secret '${alias}'`));
-  } else {
-    console.log(printer.error(`No secret found with alias ${alias}`));
-  }
-}
-
 module.exports = {
   command: ['edit <alias>', 'update'],
   describe: 'edits a secret',
@@ -93,5 +63,33 @@ module.exports = {
       .check(noArraysExcept(['notes']), false);
     // TODO: Add another check to make sure at least one update is being made
   },
-  handler: cmdEdit,
+  handler: (options) => {
+    const alias = options.alias;
+    const verbose = options.verbose;
+
+    delete options._;
+    delete options.$0;
+    delete options.alias;
+    delete options.verbose;
+
+    if (options.newalias) {
+      options.alias = options.newalias;
+      delete options.newalias;
+    }
+
+    if (options.notes) options.notes = arrayify(options.notes).join('\n');
+    if (options.secret)
+      options.secret = Buffer.from(
+        options.secret.split(' ').map((pair) => Number('0x' + pair)),
+      );
+
+    if (verbose)
+      console.log(printer.verbose(`Attempting to update secret '${alias}'`));
+    const success = updateSecret(alias, options);
+    if (success) {
+      console.log(printer.success(`Updated secret '${alias}'`));
+    } else {
+      console.log(printer.error(`No secret found with alias ${alias}`));
+    }
+  },
 };

@@ -3,30 +3,6 @@ const { generateTOTP } = require('../generator');
 const printer = require('../printer');
 const { fetchSecrets } = require('../fetcher');
 
-function cmdGet(options) {
-  const { alias, partial, verbose } = options;
-
-  if (verbose) console.log(printer.verbose('Calling fetcher.'));
-  const secrets = fetchSecrets(alias, partial, verbose);
-
-  if (secrets.length) {
-    if (verbose) console.log(printer.verbose('Generating TOTPs.'));
-    console.log(
-      printer.totpList(
-        secrets.map((secret) => {
-          const { totp, validFor } = generateTOTP(secret);
-          return {
-            name: secret.name,
-            issuer: secret.issuer,
-            totp,
-            validFor,
-          };
-        }),
-      ),
-    );
-  }
-}
-
 module.exports = {
   command: ['get'],
   describe: 'generate TOTPs',
@@ -45,5 +21,27 @@ module.exports = {
       .check(noArraysExcept(['alias']), false)
       .group(['alias', 'partial'], 'GET options:');
   },
-  handler: cmdGet,
+  handler: (options) => {
+    const { alias, partial, verbose } = options;
+
+    if (verbose) console.log(printer.verbose('Calling fetcher.'));
+    const secrets = fetchSecrets(alias, partial, verbose);
+
+    if (secrets.length) {
+      if (verbose) console.log(printer.verbose('Generating TOTPs.'));
+      console.log(
+        printer.totpList(
+          secrets.map((secret) => {
+            const { totp, validFor } = generateTOTP(secret);
+            return {
+              name: secret.name,
+              issuer: secret.issuer,
+              totp,
+              validFor,
+            };
+          }),
+        ),
+      );
+    }
+  },
 };
