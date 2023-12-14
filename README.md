@@ -120,8 +120,4 @@ Feel free to make PRs, but at this time I cannot commit to any level of responsi
 ## TODO:
 
 - Some kind of bundling/compile for bin install
-- Unit tests
-  - Not exhaustive. Lean.
-- Add confirmation step
-  - for decrypting the database
-  - for removing a secret
+- Update insert logic (stop inserting null/undefined)

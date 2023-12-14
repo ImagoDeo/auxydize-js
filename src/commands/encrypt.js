@@ -1,6 +1,34 @@
-const { prompt } = require('../promptForPassword');
-const { encryptDB } = require('../db');
+const prompts = require('prompts');
+const { encryptDB, cleanup } = require('../db');
 const printer = require('../printer');
+
+const passwordPrompt = (name, message) => ({
+  type: 'text',
+  name,
+  message,
+  style: 'password',
+  format: (val) => val.trim(),
+  validate: (val) => {
+    if (!val.trim().length)
+      return 'Password must contain at least one non-whitespace character.';
+    if (!/^([a-z0-9 ]+)$/i.test(val))
+      return 'Password may only contain alphanumeric characters and spaces.';
+    return true;
+  },
+});
+
+const passwordPrompts = [
+  passwordPrompt(
+    'password1',
+    'Enter password to use for encryption (whitespace will be trimmed):',
+  ),
+  passwordPrompt('password2', 'Re-enter password:'),
+];
+
+const onCancel = () => {
+  cleanup(true);
+  process.exit(0);
+};
 
 module.exports = {
   command: ['encrypt', 'lock'],
@@ -18,22 +46,9 @@ module.exports = {
     let password;
 
     do {
-      let password1, password2;
-      do {
-        password1 = await prompt(
-          printer.status(
-            'Enter password to use for encryption (whitespace will be trimmed): ',
-          ),
-        );
-      } while (!password1);
-      do {
-        password2 = await prompt(printer.status('Re-enter password: '));
-      } while (!password2);
-
-      if (verbose) console.log(printer.verbose('Comparing passwords...'));
-      if (password1 === password2) {
-        if (verbose) console.log(printer.verbose('Passwords matched.'));
-        password = password1;
+      const result = await prompts(passwordPrompts, { onCancel });
+      if (result.password1 === result.password2) {
+        password = result.password1;
       } else {
         console.log(printer.error('Passwords did not match.'));
       }

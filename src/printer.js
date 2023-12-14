@@ -84,8 +84,17 @@ function details(secret, unmask) {
   );
 }
 
+function maskPasswords(string) {
+  return string.replace(
+    /key='([^']+)'/,
+    (_match, p1) => `key='${'*'.repeat(p1.length)}'`,
+  );
+}
+
 function sqlLog(string) {
-  return prefix(chalk.bold.cyanBright('# ') + 'SQLITE: ' + string);
+  return prefix(
+    chalk.bold.cyanBright('# ') + 'SQLITE: ' + maskPasswords(string),
+  );
 }
 
 module.exports = {

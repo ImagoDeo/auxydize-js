@@ -3,13 +3,33 @@ const fs = require('fs');
 const path = require('path');
 const printer = require('./printer');
 const { getDBPath } = require('./dbPath');
-const { prompt } = require('./promptForPassword');
+const prompts = require('prompts');
 
 const dbpath = getDBPath();
 const schemaPath = path.join(__dirname, 'resources/schema.sql');
 const verboseLogger = (str) => console.log(printer.sqlLog(str));
 
 let secretsdb;
+
+const passwordPrompt = {
+  type: 'text',
+  name: 'password',
+  message: 'Please enter the database password:',
+  style: 'password',
+  format: (val) => val.trim(),
+  validate: (val) => {
+    if (!val.trim().length)
+      return 'Password must contain at least one non-whitespace character.';
+    if (!/^([a-z0-9 ]+)$/i.test(val))
+      return 'Password may only contain alphanumeric characters and spaces.';
+    return true;
+  },
+};
+
+const onCancel = () => {
+  cleanup(true);
+  process.exit(0);
+};
 
 async function connectAndAccessDBMiddleware(options) {
   const { help, version, _, verbose } = options;
@@ -52,9 +72,8 @@ async function connectAndAccessDBMiddleware(options) {
     console.log(printer.error('Secrets database is encrypted.'));
     let success = false;
     do {
-      const password = await prompt(
-        printer.error('Please enter the database password: '),
-      );
+      const { password } = await prompts(passwordPrompt, { onCancel });
+
       if (verbose)
         console.log(
           printer.verbose('Password received. Attempting database access.'),
