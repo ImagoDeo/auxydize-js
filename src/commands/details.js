@@ -26,6 +26,11 @@ module.exports = {
     if (verbose)
       console.log(printer.verbose(`Fetching secret by alias: ${alias}`));
     const secret = getSecretByAlias(alias);
+    if (!secret) {
+      console.log(printer.error(`No secret found with alias: ${alias}`));
+      return;
+    }
+
     console.log(printer.details(secret, unmask));
   },
 };

@@ -158,20 +158,18 @@ function decryptDB() {
 }
 
 function insertSecret(secret) {
+  for (const key of Object.keys(secret)) {
+    if (secret[key] === undefined) delete secret[key];
+  }
+
   const insertSecret = secretsdb.prepare(
-    'INSERT INTO secrets ( name, issuer, alias, algorithm, digits, interval, tzero, secret, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    `INSERT INTO secrets ( ${Object.keys(secret).join(
+      ', ',
+    )} ) VALUES ( ${Object.keys(secret)
+      .map((_) => '?')
+      .join(', ')} )`,
   );
-  const { changes } = insertSecret.run(
-    secret.name,
-    secret.issuer,
-    secret.alias,
-    secret.algorithm,
-    secret.digits,
-    secret.interval,
-    secret.tzero,
-    secret.secret,
-    secret.notes,
-  );
+  const { changes } = insertSecret.run(...Object.values(secret));
   return changes > 0;
 }
 
