@@ -1,0 +1,6 @@
+.eslint*
+.gitignore
+.nvmrc
+.prettierrc
+*.test.js
+.husky/

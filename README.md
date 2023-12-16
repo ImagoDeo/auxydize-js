@@ -116,7 +116,3 @@ Feel free to make PRs, but at this time I cannot commit to any level of responsi
 ## Problems?
 
 [File an issue](https://github.com/imagodeo/auxydize-js/issues). Please [search existing issues](https://github.com/imagodeo/auxydize-js/issues?utf8=%E2%9C%93&q=is%3Aissue) first.
-
-## TODO:
-
-- Some kind of bundling/compile for bin install
