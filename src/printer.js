@@ -30,12 +30,14 @@ function totpList(list) {
           : index > 0
           ? `next +${index}`
           : 'current';
-      const validForString = validFor ? `${validFor}s` : undefined;
+
       return {
         code: chalk.yellowBright(totp),
         issuer: chalk.bold(issuer),
         name: chalk.bold(name),
-        lifetime: chalk.greenBright(validForString),
+        lifetime: chalk.greenBright(
+          validFor !== null ? `${validFor}s` : 'unknown',
+        ),
         index: chalk.dim(indexString),
       };
     }),
