@@ -3,20 +3,6 @@ function arrayify(optionValue) {
   return Array.isArray(optionValue) ? optionValue : [optionValue];
 }
 
-function expandHome(filepaths) {
-  if (!filepaths) return;
-
-  function replacer(string) {
-    if (/^~/.test(string) && !process.env.HOME)
-      throw new Error(`$HOME undefined - cannot expand ${string}`);
-    return string.replace(/^~/, process.env.HOME);
-  }
-
-  if (!Array.isArray(filepaths)) return replacer(filepaths);
-
-  return filepaths.map(replacer);
-}
-
 function noArraysExcept(exclusions = []) {
   return (argv) => {
     const defaultExclusions = ['_', '$0'];
@@ -33,4 +19,4 @@ function noArraysExcept(exclusions = []) {
   };
 }
 
-module.exports = { arrayify, expandHome, noArraysExcept };
+module.exports = { arrayify, noArraysExcept };

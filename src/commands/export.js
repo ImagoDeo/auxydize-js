@@ -1,4 +1,4 @@
-const { noArraysExcept, expandHome } = require('../utils');
+const { noArraysExcept } = require('../utils');
 const printer = require('../printer');
 const { fetchSecrets } = require('../fetcher');
 const {
@@ -83,8 +83,7 @@ module.exports = {
     if (verbose) console.log(printer.verbose('Calling fetcher.'));
     const secrets = fetchSecrets(alias, partial, verbose);
 
-    const { google, uri, qrcode, filepath: rawFilepath } = options;
-    const filepath = expandHome(rawFilepath);
+    const { google, uri, qrcode, filepath } = options;
 
     let strings = [];
 
