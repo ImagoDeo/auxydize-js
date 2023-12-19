@@ -1,4 +1,4 @@
-const { arrayify, expandHome, noArraysExcept } = require('../utils');
+const { arrayify, noArraysExcept } = require('../utils');
 const {
   parseFreeOTPPlusBackupJSON,
   decodeQR,
@@ -47,13 +47,6 @@ module.exports = {
     let strings = arrayify(string);
     let files = arrayify(file);
     let jsons = arrayify(json);
-
-    if (verbose)
-      console.log(
-        printer.verbose('Expanding home variables for possible filepaths'),
-      );
-    files = expandHome(files);
-    jsons = expandHome(jsons);
 
     if (verbose)
       console.log(printer.verbose('Processing json files/raw strings'));
