@@ -13,7 +13,7 @@ For SEO: This is basically Google Authenticator as a CLI.
 ## Installation
 
 ```sh
-npm install -g auxydize-js
+npm install -g auxydize
 ```
 
 ## Usage
@@ -69,7 +69,8 @@ $ aux edit --alias reddit --newalias first-reddit --notes "Made a throwaway acco
 Remove a secret:
 
 ```
-$ aux rm --alias second-reddit
+$ aux rm second-reddit
+✔ REMOVING A SECRET CANNOT BE UNDONE. Are you sure you want to remove the specified secret? … yes
 [aux]# Deleted secret with alias: second-reddit
 ```
 
@@ -88,8 +89,8 @@ Encrypt your local secrets database:
 $ aux encrypt
 [aux]# THIS COMMAND ENCRYPTS YOUR SECRETS DATABASE.
 [aux]# IF YOU LOSE THE PASSWORD, THIS CANNOT BE UNDONE AND YOU WILL LOSE ALL SECRETS.
-[aux]# Enter password to use for encryption (whitespace will be trimmed): *********
-[aux]# Re-enter password: *********
+✔ Enter password to use for encryption (whitespace will be trimmed): … ****
+✔ Re-enter password: … ****
 [aux]# DB encrypted.
 ```
 
@@ -98,7 +99,8 @@ Decrypt your local secrets database:
 ```
 $ aux decrypt
 [aux]# Secrets database is encrypted.
-[aux]# Please enter the database password: ****
+✔ Please enter the database password: … ****
+✔ Are you sure you want to decrypt the database? … yes
 [aux]# DB decrypted.
 ```
 
