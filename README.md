@@ -13,7 +13,7 @@ For SEO: This is basically Google Authenticator as a CLI.
 ## Installation
 
 ```sh
-npm install -g auxydize
+npm install -g auxydize --production
 ```
 
 ## Usage
