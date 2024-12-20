@@ -1,6 +1,6 @@
 {
   "name": "auxydize",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Auxydize is a Time-Based One-Time Password authenticator app for the command line.",
   "keywords": ["totp", "authenticator", "cli"],
   "homepage": "https://github.com/ImagoDeo/auxydize-js",
