@@ -1,35 +1,113 @@
-// I'm not proud of this implementation of base32 encoding and
-// I don't know what problems I have created by doing it
-// this way, but it works.
-//
-// RFC4648, as you can see from line 7 below. Padding optional for encoding.
+// RFC4648, as you can see from line 3 below. Padding optional for encoding.
+
+/**
+ * JKMK 2024-12-20
+ *
+ * High time I got rid of the old string-based version of these
+ * functions. The actual implementation is largely copied
+ * from agnoster's implementation in this library:
+ *
+ * https://www.npmjs.com/package/base32
+ */
 
 const lib = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const lookup = Array.prototype.reduce.call(
+  lib,
+  (acc, char, index) => {
+    acc[char] = index;
+    return acc;
+  },
+  {},
+);
 
+/**
+ * Encodes arbitrary int-indexed data into an RFC4648 base32 string.
+ * By default, padding is added.
+ *
+ * @param {any} bytes - The data to be encoded.
+ * @param {boolean} [pad=true] - Whether to pad the data.
+ * @returns String
+ */
 function encode(bytes, pad = true) {
-  let bits = [...bytes.values()]
-    .map((v) => v.toString(2).padStart(8, '0'))
-    .join('');
-  if (bits.length % 5) bits += '0'.repeat(5 - (bits.length % 5));
-  let str = '';
-  for (let c = 5; c <= bits.length; c += 5) {
-    str += lib[Number('0b' + bits.slice(c - 5, c))];
+  let skip = 0;
+  let bits = 0;
+  let output = '';
+
+  for (let i = 0; i < bytes.length; ) {
+    let byte = bytes[i];
+    // coerce the byte to an int
+    if (typeof byte == 'string') byte = byte.charCodeAt(0);
+
+    if (skip < 0) {
+      // we have a carry from the previous byte
+      bits |= byte >> -skip;
+    } else {
+      // no carry
+      bits = (byte << skip) & 248;
+    }
+
+    if (skip > 3) {
+      // not enough data to produce a character, get us another one
+      skip -= 8;
+      i += 1;
+      continue;
+    }
+
+    if (skip < 4) {
+      // produce a character
+      output += lib[bits >> 3];
+      skip += 5;
+    }
   }
-  if (pad && str.length % 8) str += '='.repeat(8 - (str.length % 8));
-  return str;
+
+  // Add anything leftover
+  output += skip < 0 ? lib[bits >> 3] : '';
+
+  // Add padding if required
+  if (pad && output.length % 8) output += '='.repeat(8 - (output.length % 8));
+
+  return output;
 }
 
+/**
+ * Decodes an RFC 4648 base32 string into arbitrary data stored in a Buffer.
+ *
+ * @returns Buffer
+ */
 function decode(string) {
+  // Strip out padding
   const str = string.replace(/=/g, '').toUpperCase();
-  let bits = Array.prototype.map
-    .call(str, (c) => lib.indexOf(c).toString(2).padStart(5, '0'))
-    .join('');
-  if (bits.length % 8) bits = bits.slice(0, -(bits.length % 8));
-  let buffer = Buffer.alloc(bits.length / 8);
-  for (let c = 8; c <= bits.length; c += 8) {
-    buffer.writeUint8(Number('0b' + bits.slice(c - 8, c)), (c - 8) / 8);
+
+  // Initialize variables
+  let skip = 0;
+  let byte = 0;
+  const output = [];
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    let val = lookup[char];
+    if (!val)
+      throw new Error('string is not a valid RFC 4648 base32 encoded value');
+
+    val <<= 3; // move to the high bits
+    byte |= val >>> skip;
+    skip += 5;
+
+    if (skip >= 8) {
+      // we have enough to produce output
+      output.push(byte);
+      skip -= 8;
+      if (skip > 0) {
+        byte = (val << (5 - skip)) & 255;
+      } else {
+        byte = 0;
+      }
+    }
   }
-  return buffer;
+
+  // Any remaining byte fragment is discarded implicitly
+
+  return Buffer.from(output);
 }
 
 module.exports = {

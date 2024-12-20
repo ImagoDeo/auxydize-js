@@ -36,11 +36,21 @@ const TEST_CASES = [
   ['foobar', 'MZXW6YTBOI======'],
 ];
 
+const stripPadding = (str) => str.replace(/=/g, '');
+
 describe('base32', () => {
   it.each(TEST_CASES)(
-    'should encode %s to %s and decode it back again',
+    'should encode "%s" to "%s" and decode it back again',
     (value, result) => {
       expect(encode(Buffer.from(value))).toEqual(result);
+      expect(decode(result).toString('utf8')).toEqual(value);
+    },
+  );
+
+  it.each(TEST_CASES.map(([value, result]) => [value, stripPadding(result)]))(
+    'without padding, should encode "%s" to "%s" and decode it back again',
+    (value, result) => {
+      expect(encode(Buffer.from(value), false)).toEqual(result);
       expect(decode(result).toString('utf8')).toEqual(value);
     },
   );
