@@ -86,7 +86,7 @@ function decode(string) {
   for (let i = 0; i < str.length; i++) {
     const char = str[i];
     let val = lookup[char];
-    if (!val)
+    if (val === undefined)
       throw new Error('string is not a valid RFC 4648 base32 encoded value');
 
     val <<= 3; // move to the high bits

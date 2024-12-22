@@ -54,4 +54,8 @@ describe('base32', () => {
       expect(decode(result).toString('utf8')).toEqual(value);
     },
   );
+
+  it('should decode all lib chars without erroring', () => {
+    expect(() => decode('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567')).not.toThrow();
+  });
 });
